@@ -18,7 +18,7 @@ TEST1_ODIR=	test1_objs/
 TEST1_OBJ=	$(addprefix $(TEST1_ODIR), $(OBJS))
 TEST1_INIT=	$(TEST1_DIR)/.INIT
 TEST1_DIR=	correct_superstring_tests
-TEST1_FILECOUNT = 5
+TEST1_FILECOUNT = 2
 TEST1_FLAGS=	-DMAX_LINE=3335 -DTEST1
 
 
@@ -32,7 +32,7 @@ TEST2_ODIR=	test2_objs/
 TEST2_OBJ=	$(addprefix $(TEST2_ODIR), $(OBJS))
 TEST2_INIT=	$(TEST2_DIR)/.INIT
 TEST2_DIR=	compression_tests
-TEST2_FILECOUNT = 50
+TEST2_FILECOUNT = 10
 TEST2_FLAGS=	-DTEST2
 
 # By default, run all tests
@@ -88,10 +88,9 @@ test2: $(TEST2_INIT) $(TEST2_BIN)
 	./test2.sh $(TEST2_DIR) $(TEST2_BIN)
 
 $(TEST2_INIT): | $(TEST2_DIR)
-	@echo "Creating $(TEST2_FILECOUNT) * 3 = $$(($(TEST2_FILECOUNT)*3)) small instances with binary alphabet..."
+	@echo "Creating $(TEST2_FILECOUNT) * 2 = $$(($(TEST2_FILECOUNT)*3)) small instances with binary alphabet..."
 	./create_instance.sh binary 5 5 $(TEST2_FILECOUNT) $(TEST2_DIR)
 	./create_instance.sh binary 7 7 $(TEST2_FILECOUNT) $(TEST2_DIR)
-	./create_instance.sh binary 10 10 $(TEST2_FILECOUNT) $(TEST2_DIR)
 	touch $@
 
 $(TEST2_BIN): $(TEST2_OBJ) | $(TARGET)

@@ -5,7 +5,7 @@ TESTS= ./tests
 
 all:	project
 
-tests:	project
+tests:	
 	$(MAKE) -C $(TESTS) all
 
 project:

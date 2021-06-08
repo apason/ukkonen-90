@@ -1,10 +1,9 @@
 #ifndef FIFO_H
 #define FIFO_H
 
-/* Contains the STATE macro */
-#include "ac.h"
+#include "init.h" // STATE
 
-/* The fifo node that is used only internally in fifo.c */
+/* The fifo node that is used only internally in queue */
 struct queue_node{
     STATE state;
     struct queue_node *next;
@@ -26,5 +25,4 @@ extern void  freeQueue(      struct queue * const q         );
 
 extern struct queue * newQueue (void);
 
-
-#endif
+#endif /* FIFO_H */

@@ -1,7 +1,7 @@
-CC=	  gcc
-OBJS=	  main.o fifo.o ac.o input.o
-INCLUDE=  -I "include/"
+SRC= ./
 TARGET=   ../target/
+
+include ../common.mk
 
 # DEBUG variable enables DEBUG and INFO macros
 ifdef DEBUG
@@ -14,19 +14,18 @@ INFO_FLAGS = -DINFO
 endif
 
 # DEFS is for appending CFLAGS from shell.
-CFLAGS=   $(DEFS) $(INCLUDE) -c -fsigned-char -Wno-char-subscripts -Wall -Werror -Wno-unused-variable $(DEBUG_FLAGS) $(INFO_FLAGS)
+CFLAGS=   $(DEFS) $(INCLUDE) -c -funsigned-char -Wno-char-subscripts -Wall -Werror -Wno-unused-variable $(DEBUG_FLAGS) $(INFO_FLAGS) -O3 
 
 .IGNORE: clean clobber
 .DELETE_ON_ERROR: ac
 
+.SECONDEXPANSION:
+%_goto.o: $(GOTO_DIR)$$(notdir $$(basename $$@)).c
+	$(CC) $(CFLAGS) goto/$(basename $@).c
 .c.o:
 	$(CC) $(CFLAGS) $<
 
 all:	$(TARGET)scs
-
-main.o ac.o: include/ac.h
-main.o ac.o fifo.o: include/fifo.h
-main.o input.o: include/input.h
 
 $(TARGET)scs:	$(OBJS) | $(TARGET)
 	$(CC) $(OBJS) -o $(TARGET)scs

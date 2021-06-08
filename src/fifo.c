@@ -1,9 +1,8 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <stdio.h>  // NULL
+#include <stdlib.h> // malloc(), free()
 
-#include "fifo.h"
-
-/* fifo.c */
+#include "init.h"   // STATE
+#include "fifo.h"   // struct queue[_node]
 
 /* 
  * This file contains an implementation of a very simple fifo functionality and structure.
@@ -24,6 +23,8 @@
 struct queue * newQueue(void){
 
     struct queue * q = malloc(sizeof(q));
+
+    checkNULL(q, "malloc");
 
     q->size = 0;
     q->first = NULL;
@@ -59,7 +60,6 @@ STATE qGet2(struct queue * const q){
     if(q->size < 2)
         return 0;
 
-
     struct queue_node *second = q->first->next;
 
     STATE s = second->state;
@@ -77,6 +77,8 @@ STATE qGet2(struct queue * const q){
 int qPut(struct queue * const q, STATE s){
 
     struct queue_node *n = malloc(sizeof(*n));
+
+    checkNULL(n, "malloc");
 
     n->state = s;
     n->next = NULL;

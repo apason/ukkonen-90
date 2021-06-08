@@ -5,8 +5,6 @@
 # alphabet is one of the following: binary, dna, hex, alnum and the
 # other parameters are integers except of the dir which is the target directory
 
-echo "$1 $2 $3 $4 $5"
-
 case $1 in
     "binary")
         alphabet="01" ;;

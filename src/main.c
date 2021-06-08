@@ -1,16 +1,10 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
-#include <limits.h>
-#include <errno.h>
+#include <stdio.h>   // printf()
 
-#include <sys/time.h>
-#include <sys/resource.h>
-
-#include "ac.h"
+#include "init.h"    // STATE, ALPHABET, ALPHABET_MAX
+#include "ac.h"      // createMachine(), struct ac_machine
 #include "fifo.h"
-#include "input.h"
+#include "input.h"   // readInput(), struct key_words
+#include "usage.h"   // startTimer(), endTimer()
 
 /* Redundant functions. Only used in development / debugging phase */
 /* --------------------------------------------------------------- */
@@ -19,7 +13,7 @@
 
 static void printDebugInfo   (const struct ac_machine * const acm,  const struct key_words * const keys);
 static void printContents    (const        STATE      * const x,    const char * fname);
-static void printGotoFunction(const struct ac_machine * const acm);
+//static void printGotoFunction(const struct ac_machine * const acm);
 static void printKeyWords    (const struct key_words  * keys);
 
 #endif
@@ -28,12 +22,7 @@ static void printKeyWords    (const struct key_words  * keys);
 /* ------------------------------------------------------------------ */
 
 #ifdef INFO
-
-static void printUsageMessages(struct output_messages *outputs);
 static void printDefs(void);
-
-struct output_messages outputs = {NULL, 0};
-
 #endif
 
 /* 
@@ -70,18 +59,14 @@ int main (int argc, char *argv[]){
 #endif
 
 #ifdef INFO
-    struct rusage t1;
-    struct rusage t2;
-    getrusage(RUSAGE_SELF, &t1);
+    startTimer("AC-machine construction");
 #endif
 
     /* Constructs the AC machine as described in Aho & Corasick 1974 */
     const struct ac_machine * const acm = createMachine(keys);
-    
+
 #ifdef INFO
-    getrusage(RUSAGE_SELF, &t2);
-    addUsageMessage(&t1, &t2, "AC-machine construction", &outputs);
-    getrusage(RUSAGE_SELF, &t1);
+    endTimer("AC-machine construction");
 #endif
 
     /* Calculates the common superstring of the keywords using the greedy
@@ -89,9 +74,7 @@ int main (int argc, char *argv[]){
     struct edge *paths = createPath((struct ac_machine *) acm, keys);
     
 #ifdef INFO
-    getrusage(RUSAGE_SELF, &t2);
-    addUsageMessage(&t1, &t2, "Overlap graph calculation", &outputs);
-    getrusage(RUSAGE_SELF, &t1);
+    startTimer("Overlap graph calculation");
 #endif
 
     /* Common superstring is not printed if the program is run by test set 2 */
@@ -100,12 +83,8 @@ int main (int argc, char *argv[]){
 #endif
 
 #ifdef INFO
-    printf("\n\n");
-    getrusage(RUSAGE_SELF, &t2);
-    addUsageMessage(&t1, &t2, "Printing the output", &outputs);
-    getrusage(RUSAGE_SELF, &t1);
-
-    printUsageMessages(&outputs);
+    endTimer("Overlap graph calculation");
+    printUsageMessages();
 #endif    
 
 #ifdef DEBUG
@@ -116,7 +95,7 @@ int main (int argc, char *argv[]){
     printf("%ld", cs_compression);
 #endif
 
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 
@@ -138,19 +117,6 @@ static void printContents(const STATE * const x, const char *fname){
     printf("\n");
 }
 
-static void printGotoFunction(const struct ac_machine * const acm){
-
-    for(int i = 1; i <= acm->len; i++){
-
-        printf("State %d:(from 1 to %ld)\n", i, acm->len);
-
-        for(int j = 0; j < ALPHABET_MAX; j++)
-            printf("%d\t", (*acm->g[i])[j]);
-
-        printf("\n\n");
-    }
-}
-
 static void printKeyWords(const struct key_words * keys){
 
     for(int i = 0; i < keys->len; i++)
@@ -164,7 +130,7 @@ static void printDebugInfo(const struct ac_machine * const acm, const struct key
     for(int i = 1; i <= acm->len; i++)
         printf("state %4d is %10s\n", i, acm->leaf[i] ? "leaf" : "internal");
                             
-    printGotoFunction(acm);
+    printGotoFunction(acm->g, acm->len);
 
     printContents(acm->f, "f");
 
@@ -226,34 +192,6 @@ static void printDefs(void){
     printf("ALPHABET: %s\n", xstr(ALPHABET));
     printf("ALPHABET_MAX: %s == %ld\n", xstr(ALPHABET_MAX), ALPHABET_MAX);
     printf("\n\n");
-    fflush(NULL);
 }
 
-void addUsageMessage(struct rusage *t1, struct rusage *t2, const char * const msg, struct output_messages *outputs){
-
-    char *format_string = "%5ld.%06ld\t%5ld.%06ld\t%5ld.%06ld\t%s\n";
-    const int format_length = 40;
-    
-    outputs->messages = realloc(outputs->messages, sizeof(*outputs->messages) * (outputs->count +1));
-    outputs->messages[outputs->count] = malloc(sizeof(*outputs->messages) * (format_length + strlen(msg)));
-    sprintf(outputs->messages[outputs->count++], format_string,
-            t2->ru_utime.tv_sec  - t1->ru_utime.tv_sec,
-            t2->ru_utime.tv_usec - t1->ru_utime.tv_usec,
-            t2->ru_stime.tv_sec  - t1->ru_stime.tv_sec,
-            t2->ru_stime.tv_usec - t1->ru_stime.tv_usec,
-            t2->ru_utime.tv_sec  - t1->ru_utime.tv_sec +
-            t2->ru_stime.tv_sec  - t1->ru_stime.tv_sec,
-            t2->ru_utime.tv_usec - t1->ru_utime.tv_usec +
-            t2->ru_stime.tv_usec - t1->ru_stime.tv_usec, msg);
-}
-
-static void printUsageMessages(struct output_messages *outputs){
-    
-    printf("%11s\t%11s\t%11s\t%s\n", "(user)", "(sys)", "(total)", "time spent in");
-    printf("--------------------------------------------------------------------------\n");
-
-    for(int i = 0; i < outputs->count; i++)
-        printf("%s", outputs->messages[i]);
-}
-
-#endif
+#endif /* INFO */

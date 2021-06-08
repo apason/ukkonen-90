@@ -1,12 +1,12 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
-#include <limits.h>
-#include <errno.h>
+#include <stdio.h>  // [f]printf(), NULL
+#include <stdlib.h> // [m,re]alloc()
+#include <string.h> // memset()
 
-#include "ac.h"
-#include "fifo.h"
+#include "init.h"   // STATE, ALPHABET, ALPHABET_MAX
+#include "ac.h"     // struct ac_machine, struct edge
+#include "fifo.h"   // newQueue(), qGet(), qPut(), qEmpty(), struct queue[_node]
+#include "input.h"  // struct key_words
+#include "usage.h"  // startTimer(), endTimer()
 
 /* Static functions. Only used within this compilation unit. */
 static void printPath    (const struct ac_machine * const acm, const struct key_words * const keys, int i, struct edge *paths, int first);
@@ -18,18 +18,17 @@ static void createState        (struct ac_machine * const acm);
 
 static struct ac_machine * initMachine(const struct key_words * const keys);
 
-
 /* Goto function construction as described in Aho & Corasic 1975: Algorithm 2 */
 static void gotoFunction(struct ac_machine * const acm, const struct key_words * const keys){
 
     createState(acm);
-
+    
     for(int i = 1; i < keys->len; i++)
         handleKey(acm, keys->R[i]);
 
     for(int i = 0; i < ALPHABET_MAX; i++){
-        if((*acm->g[1])[i] == 0)
-            (*acm->g[1])[i] = 1;
+        if(gotoGet(acm->g, 1, i) == 0)
+            gotoSet(acm->g, 1, i, 1);
     }
 }
 
@@ -41,21 +40,21 @@ static void handleKey(struct ac_machine * const acm, char *key){
 
     int len = strlen(key);
 
-    while((*acm->g[state])[key[j]] != 0)
-        state = (*acm->g[state])[key[j++]];
+    while(gotoGet(acm->g, state, key[j]) != 0)
+        state = gotoGet(acm->g, state, key[j++]);
 
     acm->leaf[state] = 0;
 
     for(int p = j; p < len; p++){
         
         createState(acm);
-        (*acm->g[state])[key[p]] = acm->len;
+
+        gotoSet(acm->g, state, key[p], acm->len);
+
         qPut(acm->links[state], acm->len);
         state = acm->len;
     }
-
     acm->leaf[state] = 1;
-    
 }
 
 /* Failure function construction as described in Aho & Corasick 1975: algorithm 3 */
@@ -65,14 +64,13 @@ static void failureFunction(struct ac_machine * const acm){
     ALPHABET c;
     STATE r, s, t;
 
-
     for(c = 0; c < ALPHABET_MAX; c++){
 
-        if((*acm->g[1])[c] == 1)
+        if(gotoGet(acm->g, 1, c) == 1)
             continue;
 
-        s = (*acm->g[1])[c];
-        
+        s = gotoGet(acm->g, 1, c);
+
         qPut(queue, s);
         acm->f[s] = 1;
     }
@@ -82,21 +80,20 @@ static void failureFunction(struct ac_machine * const acm){
 
         for(c = 0; c < ALPHABET_MAX; c++){
 
-            if((*acm->g[r])[c] == 0)
+            if(gotoGet(acm->g, r, c) == 0)
                 continue;
 
-            s = (*acm->g[r])[c];
+            s = gotoGet(acm->g, r, c);
 
             qPut(queue, s);
             t = acm->f[r];
 
-            while((*acm->g[t])[c] == 0)
+            while(gotoGet(acm->g, t, c) == 0)
                 t = acm->f[t];
             
-            acm->f[s] = (*acm->g[t])[c];
+            acm->f[s] = gotoGet(acm->g, t, c);
         }
     }
-
     freeQueue(queue);
 }
 
@@ -109,9 +106,10 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
         int k = strlen(keys->R[i]);
         ALPHABET *x = keys->R[i];
         s = 1;
+
         for(int j = 0; j < k; j++){
 
-            s = (*acm->g[s])[x[j]];
+            s = gotoGet(acm->g, s, x[j]);
 
             qPut(acm->supporters_set[s], i); 
 
@@ -127,11 +125,9 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
                     printf("State %4d (\"%s\") represents an internal node. Setting F(%d) to 1.\n", s, keys->R[acm->F[acm->E[s]]], s);
 #endif
                 }
-
             }
         }
     }
-
     
     struct queue * q = newQueue();
     qPut(q, 1);
@@ -152,12 +148,10 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
             acm->b[s] = acm->B;
             acm->B = s;
 
-
 #ifdef DEBUG
             if(acm->E[acm->f[s]] != 0)
                 printf("Proper substring \"%s\" detected. Removing corresponding keyword %d\n", keys->R[acm->E[acm->f[s]]] , acm->E[acm->f[s]]);
 #endif
-            
             /* Filter out other proper substrings */
             acm->F[acm->E[acm->f[s]]] = 1;
         }
@@ -168,6 +162,9 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
 struct edge * createPath(struct ac_machine * acm, const struct key_words * const keys){
 
     struct edge * list = malloc(sizeof(struct edge) * keys->len);
+
+    checkNULL(list, "malloc");
+
     memset(list, 0, sizeof(struct edge) * keys->len);
 
     for(int j = 1; j < keys->len; j++){
@@ -202,7 +199,6 @@ struct edge * createPath(struct ac_machine * acm, const struct key_words * const
                     continue;
                 }
 
-                
                 i = acm->P[s]->first->state;
                 get_fn = qGet;
 
@@ -238,7 +234,6 @@ struct edge * createPath(struct ac_machine * acm, const struct key_words * const
         }
         s = acm->b[s];
     }
-
     return list;
 }
 
@@ -246,16 +241,13 @@ struct edge * createPath(struct ac_machine * acm, const struct key_words * const
 const struct ac_machine * const createMachine(const struct key_words * const keys){
 
 #ifdef INFO
-    struct rusage t1;
-    struct rusage t2;
-    getrusage(RUSAGE_SELF, &t1);
+    startTimer("Machine initialization");
 #endif
 
     struct ac_machine *acm = initMachine(keys);
 
 #ifdef INFO
-    getrusage(RUSAGE_SELF, &t2);
-    addUsageMessage(&t1, &t2, "Machine initialization", &outputs);
+    endTimer("Machine initialization");
 #endif
 
     gotoFunction(acm, keys);
@@ -273,7 +265,7 @@ void printCommonSuperstring(const struct ac_machine * const acm, const struct ke
 #ifdef INFO
     printf("Approcimate SCS:\n");
 #endif
-    
+
     struct queue *q = newQueue();
 
     for(int i = 1; i < keys->len; i++){
@@ -301,7 +293,6 @@ static void printPath(const struct ac_machine * const acm, const struct key_word
         printf("%s", (keys->R[k]) + d);
         d = paths[k].d;
     }
-
 }
 
 /* Creates and initializes a new state to the AC machine acm */
@@ -313,39 +304,22 @@ static void createState(struct ac_machine * const acm){
     }
 
     acm->g = realloc(acm->g, sizeof(*acm->g) * (++acm->len +1));
+    checkNULL(acm->g, "realloc");
 
-    if(acm->g == NULL){
-        perror("realloc");
-        exit(EXIT_FAILURE);
-    }
-
-    acm->g[acm->len] = malloc(ALPHABET_BYTES);
-
-    if(acm->g[acm->len] == NULL){
-        perror("malloc");
-        exit(EXIT_FAILURE);
-    }
-    
-    memset(acm->g[acm->len], 0, ALPHABET_BYTES);
+    gotoInit(acm->g, acm->len);
 }
 
 /* Initializes (allocates memory) and sets the default values  of the ac machine */
 static struct ac_machine * initMachine(const struct key_words * const keys){
     
     struct ac_machine * acm = malloc(sizeof(*acm));
-    
-    if(acm == NULL){
-        perror("malloc");
-        exit(EXIT_FAILURE);
-    }
+    checkNULL(acm, "malloc");
 
     acm->g = NULL;
 
     acm->F = malloc(sizeof(STATE) * keys->len);
-    if(acm->F == NULL){
-        perror("malloc");
-        exit(EXIT_FAILURE);
-    }
+    checkNULL(acm->f, "malloc");
+    
     memset(acm->F, 0, sizeof(STATE) * keys->len);
     
     acm->B = 0;

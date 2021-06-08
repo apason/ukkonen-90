@@ -1,37 +1,30 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+#include <stdio.h>  // fprintf(), fopen, feof(), NULL
+#include <string.h> // strlen(), strcpy(), memset()
+#include <stdlib.h> // malloc(), realloc(), exit(), EXIT_FAILURE
 
-#include "input.h"
+#include "init.h"   // checkNULL macro
+#include "input.h"  // struct key_words, MAX_LINE
 
 /*
  * Assume that input file contains one key word per line
- * No keyword should be over MAX_LINE characters long
+ * No keyword should be over MAX_LINE -2 characters long
  */
 const struct key_words * const readInput(const char * const file_name){
 
     struct key_words * const keys = malloc(sizeof(keys));
 
-    if(keys == NULL){
-        perror("malloc");
-        exit(EXIT_FAILURE);
-    }
+    checkNULL(keys, "malloc");
 
     FILE *input = fopen(file_name, "r");
     
-    if(input == NULL){
-        perror("fopen");
-        exit(EXIT_FAILURE);
-    }
+    checkNULL(input, "fopen");
 
     char line[MAX_LINE];
     int  length;
     
     keys->R = malloc(sizeof(keys->R) + 1);
-    if(keys->R == NULL){
-        perror("malloc");
-        exit(EXIT_FAILURE);
-    }
+
+    checkNULL(keys->R, "malloc");
 
     /* This should never be read */
     keys->R[0] = NULL;
@@ -39,7 +32,13 @@ const struct key_words * const readInput(const char * const file_name){
 
     while(!feof(input)){
         memset(line, '\0', MAX_LINE);
-        fgets(line, MAX_LINE, input);
+        if(fgets(line, MAX_LINE, input) == NULL){
+            if(ferror(input)){
+                fprintf(stdout, "ERROR: read error while reading the input file");
+                exit(EXIT_FAILURE);
+            }
+            break;
+        }
 
         if(strlen(line) == MAX_LINE -1 && line[MAX_LINE -2] != '\n')
             fprintf(stderr, "Warning: Input file contains longer lines than MAX_LINE (%d)\n", MAX_LINE);
@@ -50,29 +49,23 @@ const struct key_words * const readInput(const char * const file_name){
 
         length = strlen(line);
 
-        keys->R[keys->len] = malloc(sizeof(*keys->R) * length);
-        if(keys->R[keys->len] == NULL){
-            perror("malloc");
-            exit(EXIT_FAILURE);
-        }
-                     
-        strncpy(keys->R[keys->len], line, length);
+        keys->R[keys->len] = malloc(sizeof(*keys->R[keys->len]) * length);
+        checkNULL(keys->R[keys->len], "malloc");
+         
+
+        line[length-1] = '\0';
+        strcpy(keys->R[keys->len], line);
         keys->R[keys->len][length-1] = '\0';
 
         keys->len++;
         
         keys->R = realloc(keys->R, sizeof(keys->R) * (keys->len+1));
-        if(keys->R == NULL){
-            perror("realloc");
-            exit(EXIT_FAILURE);
-        }
+        checkNULL(keys->R, "realloc");
+
     }
 
     keys->meta = malloc(sizeof(*keys->meta) * keys->len);
-    if(keys->meta == NULL){
-        perror("malloc");
-        exit(EXIT_FAILURE);
-    }
+    checkNULL(keys->meta, "malloc");
     
     memset(keys->meta, 0, sizeof(*keys->meta) * keys->len);
     

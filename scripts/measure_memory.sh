@@ -7,6 +7,7 @@
 # This data set is not in the repo. It is already uniqued dataset. 
 datadir="../data/dna/"
 
+gcc -o memusage memusage.c
 echo "Measure memory with RB tree goto"
 
 for file in $(ls $datadir) ; do

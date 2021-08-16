@@ -1,0 +1,14 @@
+*~
+*.o
+*#
+main
+tags
+tests/test_bin
+tests/test*_objs
+tests/compression_tests
+tests/correct_superstring_tests
+bin/
+lib/
+pyvenv.cfg
+target
+data/

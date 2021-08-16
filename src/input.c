@@ -1,9 +1,11 @@
 #include <stdio.h>  // fprintf(), fopen, feof(), ftell(), fseek(), NULL
 #include <string.h> // strlen(), strcpy(), memset()
 #include <stdlib.h> // malloc(), realloc(), exit(), EXIT_FAILURE
+#include <time.h>   // time()
 
 #include "init.h"   // checkNULL macro
 #include "input.h"  // struct key_words, MAX_LINE
+#include "usage.h"  // startTimer(), endTimer()
 
 #include "strquicksort.h"
 
@@ -17,6 +19,10 @@ static struct key_words * initKeys(void);
  */
 const struct key_words * const readInput(const char * const file_name){
 
+#ifdef INFO
+    startTimer("  Reading of the input");
+#endif
+    
     char line[MAX_LINE];
     int  length;
 
@@ -64,7 +70,15 @@ const struct key_words * const readInput(const char * const file_name){
 
     }
 
+#ifdef INFO
+    endTimer("  Reading of the input");
+    startTimer("  Removal of the duplicates");
+#endif    
     keys = removeDuplicates(keys);
+
+#ifdef INFO
+    endTimer("  Removal of the duplicates");
+#endif
 
     return keys;
 }
@@ -75,7 +89,7 @@ const struct key_words * const readInput(const char * const file_name){
  */
 const struct key_words * const readSamplesFromFile(const char * const file_name, size_t row_length, float cut){
 
-    srand(10);
+    srand(time(NULL));
     
     char line[row_length +1];
 
@@ -183,7 +197,7 @@ static struct key_words * removeDuplicates(struct key_words *keys){
     memset(uniqued_keys->meta, 0, sizeof(*uniqued_keys->meta) * uniqued_keys->len);
 
 #ifdef INFO
-    printf("\nRemoved duplicates: %ld\n", duplicate_count);
+    printf("Removed duplicates: %ld\n\n", duplicate_count);
 #endif
     
     return uniqued_keys;

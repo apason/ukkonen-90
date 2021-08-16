@@ -241,21 +241,36 @@ struct edge * createPath(struct ac_machine * acm, const struct key_words * const
 const struct ac_machine * const createMachine(const struct key_words * const keys){
 
 #ifdef INFO
-    startTimer("Machine initialization");
+    startTimer("    Machine initialization");
 #endif
 
     struct ac_machine *acm = initMachine(keys);
 
 #ifdef INFO
-    endTimer("Machine initialization");
+    endTimer("    Machine initialization");
+    startTimer("    Goto function calculation");
 #endif
 
     gotoFunction(acm, keys);
 
+#ifdef INFO
+    endTimer("    Goto function calculation");
+    startTimer("    Failure function calculation");
+#endif
+    
     failureFunction(acm);
 
+#ifdef INFO
+    endTimer("    Failure function calculation");
+    startTimer("    Calculation of auxiliary functions");
+#endif
+    
     auxiliaryFunctions(acm, keys);
 
+#ifdef INFO    
+    endTimer("    Calculation of auxiliary functions");
+#endif
+    
     return acm;
 }
 

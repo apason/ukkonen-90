@@ -31,15 +31,41 @@ void addUsageMessage(struct rusage *t1, struct rusage *t2, const char * const ms
     
     outputs.messages = realloc(outputs.messages, sizeof(*outputs.messages) * (outputs.count +1));
     outputs.messages[outputs.count] = malloc(sizeof(*outputs.messages) * (format_length + strlen(msg)));
-    sprintf(outputs.messages[outputs.count++], format_string,
-            t2->ru_utime.tv_sec  - t1->ru_utime.tv_sec,
-            t2->ru_utime.tv_usec - t1->ru_utime.tv_usec,
-            t2->ru_stime.tv_sec  - t1->ru_stime.tv_sec,
-            t2->ru_stime.tv_usec - t1->ru_stime.tv_usec,
-            t2->ru_utime.tv_sec  - t1->ru_utime.tv_sec +
-            t2->ru_stime.tv_sec  - t1->ru_stime.tv_sec,
-            t2->ru_utime.tv_usec - t1->ru_utime.tv_usec +
-            t2->ru_stime.tv_usec - t1->ru_stime.tv_usec, msg);
+
+    size_t ru_utime_sec = t2->ru_utime.tv_usec > t1->ru_utime.tv_usec || t2->ru_utime.tv_usec == t1->ru_utime.tv_usec ?
+        t2->ru_utime.tv_sec  - t1->ru_utime.tv_sec :
+        (t2->ru_utime.tv_sec  - t1->ru_utime.tv_sec) -1;
+    size_t ru_utime_usec = t2->ru_utime.tv_usec - t1->ru_utime.tv_usec > 0 || t2->ru_utime.tv_usec == t1->ru_utime.tv_usec ?
+        t2->ru_utime.tv_usec - t1->ru_utime.tv_usec :
+        1000000 - (t1->ru_utime.tv_usec - t2->ru_utime.tv_usec);
+    size_t ru_stime_sec = t2->ru_stime.tv_usec > t1->ru_stime.tv_usec || t2->ru_stime.tv_usec == t1->ru_stime.tv_usec ?
+        t2->ru_stime.tv_sec  - t1->ru_stime.tv_sec :
+        (t2->ru_stime.tv_sec  - t1->ru_stime.tv_sec) -1;
+    size_t ru_stime_usec = t2->ru_stime.tv_usec - t1->ru_stime.tv_usec > 0 || t2->ru_stime.tv_usec == t1->ru_stime.tv_usec ?
+        t2->ru_stime.tv_usec - t1->ru_stime.tv_usec :
+        1000000 - (t1->ru_stime.tv_usec - t2->ru_stime.tv_usec);
+    size_t ru_ttime_usec = ru_utime_usec + ru_stime_usec < 1000000 ?
+        ru_utime_usec + ru_stime_usec :
+        1000000 - (ru_utime_usec - ru_stime_usec);
+    size_t ru_ttime_sec = ru_utime_usec + ru_stime_usec < 1000000 ?
+        ru_utime_sec + ru_stime_sec :
+        ru_utime_sec + ru_stime_sec +1;
+
+        sprintf(outputs.messages[outputs.count++], format_string,
+                ru_utime_sec,  ru_utime_usec,
+                ru_stime_sec,  ru_stime_usec,
+                ru_ttime_sec,  ru_ttime_usec, msg);
+    
+    /* sprintf(outputs.messages[outputs.count++], format_string, */
+    /*         t2->ru_utime.tv_sec  - t1->ru_utime.tv_sec, */
+    /*         t2->ru_utime.tv_usec - t1->ru_utime.tv_usec, */
+    /*         t2->ru_stime.tv_sec  - t1->ru_stime.tv_sec, */
+    /*         t2->ru_stime.tv_usec - t1->ru_stime.tv_usec, */
+    /*         t2->ru_utime.tv_sec  - t1->ru_utime.tv_sec + */
+    /*         t2->ru_stime.tv_sec  - t1->ru_stime.tv_sec, */
+    /*         t2->ru_utime.tv_usec - t1->ru_utime.tv_usec + */
+    /*         t2->ru_stime.tv_usec - t1->ru_stime.tv_usec, msg); */
+
 }
 
 void printUsageMessages(){
@@ -47,7 +73,7 @@ void printUsageMessages(){
     printf("\n\n%11s\t%11s\t%11s\t%s\n", "(user)", "(sys)", "(total)", "time spent in");
     printf("--------------------------------------------------------------------------\n");
 
-    for(int i = 0; i < outputs.count; i++)
+    for(int i = outputs.count -1; i >= 0; i--)
         printf("%s", outputs.messages[i]);
 }
 

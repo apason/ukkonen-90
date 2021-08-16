@@ -49,6 +49,10 @@ size_t input_length = 0;
  */
 int main (int argc, char *argv[]){
 
+#ifdef INFO
+    startTimer("Total runtime");
+#endif
+
     struct options * opts = getOptions(argc, argv);
 
     /* Print definitions (macros) of which the binaries are compiled with. */
@@ -58,7 +62,7 @@ int main (int argc, char *argv[]){
 
     /* Read the input file and construct an array of all the keywords */
     const struct key_words * keys;
-    
+
     if(opts->type == ONE_PER_LINE)
         keys = readInput(opts->input_file);
     else if (opts->type == SAMPLE_INPUT)
@@ -75,14 +79,14 @@ int main (int argc, char *argv[]){
 #endif
 
 #ifdef INFO
-    startTimer("AC-machine construction");
+    startTimer("  AC-machine construction");
 #endif
 
     /* Constructs the AC machine as described in Aho & Corasick 1974 */
     const struct ac_machine * const acm = createMachine(keys);
 
 #ifdef INFO
-    endTimer("AC-machine construction");
+    endTimer("  AC-machine construction");
 #endif
 
     /* Calculates the common superstring of the keywords using the greedy
@@ -90,7 +94,7 @@ int main (int argc, char *argv[]){
     struct edge *paths = createPath((struct ac_machine *) acm, keys);
     
 #ifdef INFO
-    startTimer("Overlap graph calculation");
+    startTimer("  Overlap graph calculation");
 #endif
 
     /* Common superstring is not printed if the program is run by test set 2 */
@@ -99,7 +103,8 @@ int main (int argc, char *argv[]){
 #endif
 
 #ifdef INFO
-    endTimer("Overlap graph calculation");
+    endTimer("  Overlap graph calculation");
+    endTimer("Total runtime");
     printUsageMessages();
 #endif    
 

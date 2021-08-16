@@ -134,7 +134,11 @@ const struct key_words * const readSamplesFromFile(const char * const file_name,
 }
 
 static struct key_words * removeDuplicates(struct key_words *keys){
-    
+
+#ifdef INFO
+    size_t duplicate_count = 0;
+#endif
+
     /* Move the last item to first. At this point the first element only
      * contains a NULL reference so no information is lost. 
      */
@@ -156,10 +160,20 @@ static struct key_words * removeDuplicates(struct key_words *keys){
             prev = keys->R[i];
             continue;
         }
+
+#ifdef INFO
+        duplicate_count++;
+#endif
     }
 
     if(strcmp(keys->R[keys->len-1], uniqued_keys->R[uniqued_keys->len-1]) != 0)
         add(uniqued_keys, keys->R[keys->len-1]);
+    else{
+#ifdef INFO
+        duplicate_count++;
+#endif
+        ;
+    }
 
     free(keys);
 
@@ -168,6 +182,9 @@ static struct key_words * removeDuplicates(struct key_words *keys){
 
     memset(uniqued_keys->meta, 0, sizeof(*uniqued_keys->meta) * uniqued_keys->len);
 
+#ifdef INFO
+    printf("\nRemoved duplicates: %ld\n", duplicate_count);
+#endif
     
     return uniqued_keys;
 

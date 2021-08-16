@@ -6,10 +6,10 @@
 #include "fifo.h"    // struct queue
 #include "input.h"   // struct key_words
 
-/* Compression value is used from test set 2 */
-#ifdef TEST2
-extern long cs_compression;
-#endif /* TEST2 */
+/* Compression value is used from test set 2. This variable is defined in main.c */
+#if defined(TEST2) || defined(INFO)
+extern size_t cs_compression;
+#endif /* TEST2 || INFO */
 
 /*
  * The main structure of the program. This holds all data related to the ac_machine,

@@ -14,7 +14,7 @@ INFO_FLAGS = -DINFO
 endif
 
 # DEFS is for appending CFLAGS from shell.
-CFLAGS=   $(DEFS) $(INCLUDE) -c -funsigned-char -Wno-char-subscripts -Wall -Werror -Wno-unused-variable $(DEBUG_FLAGS) $(INFO_FLAGS) -O3 
+CFLAGS=   $(DEFS) $(INCLUDE) -c -funsigned-char -Wno-char-subscripts -Wall -Werror -Wno-unused-variable $(DEBUG_FLAGS) $(INFO_FLAGS) -O3 -flto
 
 .IGNORE: clean clobber
 .DELETE_ON_ERROR: ac
@@ -28,7 +28,7 @@ CFLAGS=   $(DEFS) $(INCLUDE) -c -funsigned-char -Wno-char-subscripts -Wall -Werr
 all:	$(TARGET)scs
 
 $(TARGET)scs:	$(OBJS) | $(TARGET)
-	$(CC) $(OBJS) -o $(TARGET)scs
+	$(CC) -flto $(OBJS) -o $(TARGET)scs
 
 $(TARGET):
 	mkdir $(TARGET)

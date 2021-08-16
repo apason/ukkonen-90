@@ -216,7 +216,7 @@ struct edge * createPath(struct ac_machine * acm, const struct key_words * const
                 printf("merge: %s - %s\t depth: %d\n", keys->R[i], keys->R[j], acm->d[s]);
 #endif
 
-#ifdef TEST2
+#if defined(TEST2) || defined(INFO)
                 cs_compression += acm->d[s];
 #endif
                 list[i].next = j;

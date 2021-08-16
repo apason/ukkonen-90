@@ -1,10 +1,11 @@
 #include <stdio.h>   // printf()
 
 #include "init.h"    // STATE, ALPHABET, ALPHABET_MAX
-#include "ac.h"      // createMachine(), struct ac_machine
+#include "ac.h"      // createMachine(), struct ac_machine, enum input_type
 #include "fifo.h"
 #include "input.h"   // readInput(), struct key_words
 #include "usage.h"   // startTimer(), endTimer()
+#include "options.h" // struct options, enum input_type
 
 /* Redundant functions. Only used in development / debugging phase */
 /* --------------------------------------------------------------- */
@@ -26,14 +27,16 @@ static void printDefs(void);
 #endif
 
 /* 
- * Compression is needed only when runnings tests from test set 2
- * This variable holds the total length of the overlaps of the 
- * keywords that are handled.
+ * Compression is needed only when runnings tests from test set 2 or when INFO is defined.
+ * This variable holds the total length of the overlaps of the keywords that are handled.
  */
-#ifdef TEST2
-long cs_compression = 0;
+#if defined(TEST2) || defined(INFO)
+size_t cs_compression = 0;
 #endif
 
+#ifdef INFO
+size_t input_length = 0;
+#endif
 
 /*
  * Main function.
@@ -46,13 +49,26 @@ long cs_compression = 0;
  */
 int main (int argc, char *argv[]){
 
+    struct options * opts = getOptions(argc, argv);
+
     /* Print definitions (macros) of which the binaries are compiled with. */
 #ifdef INFO
     printDefs();
 #endif
 
     /* Read the input file and construct an array of all the keywords */
-    const struct key_words * const keys = readInput(argv[1]);
+    const struct key_words * keys;
+    
+    if(opts->type == ONE_PER_LINE)
+        keys = readInput(opts->input_file);
+    else if (opts->type == SAMPLE_INPUT)
+        keys = readSamplesFromFile(opts->input_file, opts->line_length, opts->cut);
+    else{
+        fprintf(stderr, "ERROR: Input type is not specified\n");
+        return EXIT_FAILURE;
+    }
+
+    freeOptions(opts);
 
 #ifdef DEBUG
     printKeyWords(keys);
@@ -91,10 +107,19 @@ int main (int argc, char *argv[]){
     printDebugInfo(acm, keys);
 #endif
 
-#ifdef TEST2    
+#ifdef INFO
+    printf("\nLength of the input:\t%ld\n", input_length);
+    printf("Length of the common superstring:\t%ld\n", input_length - cs_compression);
+    printf("Length of the superstring compression:\t");
+#endif
+    
+#if defined(TEST2) || defined(INFO)
     printf("%ld", cs_compression);
 #endif
-
+#ifdef INFO
+    printf("\nCompression ratio\t%lf\n", ((double)input_length - cs_compression)/input_length);
+#endif
+    
     return EXIT_SUCCESS;
 }
 

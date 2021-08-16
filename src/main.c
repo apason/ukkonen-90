@@ -72,12 +72,16 @@ int main (int argc, char *argv[]){
         return EXIT_FAILURE;
     }
 
+    (void) keys;
+
     freeOptions(opts);
 
 #ifdef DEBUG
     printKeyWords(keys);
 #endif
 
+#ifdef SCS    
+    
 #ifdef INFO
     startTimer("  AC-machine construction");
 #endif
@@ -102,8 +106,14 @@ int main (int argc, char *argv[]){
     printCommonSuperstring(acm, keys, paths);
 #endif
 
+#endif /* SCS */    
+    
 #ifdef INFO
+
+#ifdef SCS    
     endTimer("  Overlap graph calculation");
+#endif    
+
     endTimer("Total runtime");
     printUsageMessages();
 #endif    

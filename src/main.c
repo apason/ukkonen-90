@@ -22,6 +22,13 @@ static void printKeyWords    (const struct key_words  * keys);
 /* Redundant functions and variables. Only used for extra information */
 /* ------------------------------------------------------------------ */
 
+
+// OMAAN HEADERIIN!!! 
+extern void optimizeAlphabet(const struct key_words * keys);
+extern void unmap(const struct key_words * keys);
+
+
+
 #ifdef INFO
 static void printDefs(void);
 #endif
@@ -72,8 +79,13 @@ int main (int argc, char *argv[]){
         return EXIT_FAILURE;
     }
 
-    (void) keys;
+    /* Optimize the alphabet */
+#ifdef OPTIMIZE_ALPHABET    
+    optimizeAlphabet(keys);
+#endif
 
+    (void) keys;
+    
     freeOptions(opts);
 
 #ifdef DEBUG
@@ -96,7 +108,11 @@ int main (int argc, char *argv[]){
     /* Calculates the common superstring of the keywords using the greedy
      * heuristic as described in the publication by Esko Ukkonen 1990 */
     struct edge *paths = createPath((struct ac_machine *) acm, keys);
-    
+
+#ifdef OPTIMIZE_ALPHABET
+    unmap(keys);
+#endif
+
 #ifdef INFO
     startTimer("  Overlap graph calculation");
 #endif
@@ -134,7 +150,7 @@ int main (int argc, char *argv[]){
 #ifdef INFO
     printf("\nCompression ratio\t%lf\n", ((double)input_length - cs_compression)/input_length);
 #endif
-    
+
     return EXIT_SUCCESS;
 }
 

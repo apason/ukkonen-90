@@ -56,7 +56,7 @@
 #ifndef MAX_ALPHABET
   #define ALPHABET_MAX ((size_t) (1 << sizeof(ALPHABET) * 8) -1)
 #else
-  #define ALPHABET_MAX (MAX_ALPHABET +1)
+  #define ALPHABET_MAX ((size_t) MAX_ALPHABET +1)
   #define OPTIMIZE_ALPHABET
 #endif
 

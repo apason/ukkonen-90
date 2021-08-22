@@ -13,8 +13,11 @@ void optimizeAlphabet(const struct key_words * keys){
     memset(map_a, 0, sizeof(*map_a) * ((size_t) (1 << sizeof(ALPHABET) * 8) -1));
 
     map_b = (ALPHABET*) malloc(sizeof(*map_b) * ALPHABET_MAX);
-    memset(map_b, 0, sizeof(*map_b) * ALPHABET_MAX); // turha alustus?
 
+    /* Zero indicates "not handled" keycode
+     * Also, keywords can not contain '\0'
+     * Thus, the alphabet indexing starts from 1
+     */
     size_t counter = 1;
 
     for(size_t key_i = 1; key_i < keys->len; key_i++){
@@ -32,7 +35,6 @@ void optimizeAlphabet(const struct key_words * keys){
         for(size_t char_i = 0; char_i < char_max; char_i++)
             keys->R[key_i][char_i] = map_a[keys->R[key_i][char_i]];
     }
-
 }
 
 extern void unmap(const struct key_words * keys){

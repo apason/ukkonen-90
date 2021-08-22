@@ -83,8 +83,6 @@ int main (int argc, char *argv[]){
 #ifdef OPTIMIZE_ALPHABET    
     optimizeAlphabet(keys);
 #endif
-
-    (void) keys;
     
     freeOptions(opts);
 
@@ -112,11 +110,11 @@ int main (int argc, char *argv[]){
 #ifdef OPTIMIZE_ALPHABET
     unmap(keys);
 #endif
-
+    
 #ifdef INFO
     startTimer("  Overlap graph calculation");
 #endif
-
+    
     /* Common superstring is not printed if the program is run by test set 2 */
 #ifndef TEST2
     printCommonSuperstring(acm, keys, paths);

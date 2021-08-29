@@ -22,7 +22,7 @@
  */
 struct queue * newQueue(void){
 
-    struct queue * q = malloc(sizeof(q));
+    struct queue * q = malloc(sizeof(*q));
 
     checkNULL(q, "malloc");
 

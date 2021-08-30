@@ -70,6 +70,8 @@ int main (int argc, char *argv[]){
     /* Read the input file and construct an array of all the keywords */
     const struct key_words * keys;
 
+    (void) keys;
+
     if(opts->type == ONE_PER_LINE)
         keys = readInput(opts->input_file);
     else if (opts->type == SAMPLE_INPUT)

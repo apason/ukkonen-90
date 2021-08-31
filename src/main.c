@@ -83,7 +83,9 @@ int main (int argc, char *argv[]){
 
     /* Optimize the alphabet */
 #ifdef OPTIMIZE_ALPHABET    
+    startTimer("  Alphabet optimization");
     optimizeAlphabet(keys);
+    endTimer("  Alphabet optimization");
 #endif
     
     freeOptions(opts);
@@ -107,8 +109,10 @@ int main (int argc, char *argv[]){
 
     /* Calculates the common superstring of the keywords using the greedy
      * heuristic as described in the publication by Esko Ukkonen 1990 */
+    startTimer("  Path calculation");
     struct edge *paths = createPath((struct ac_machine *) acm, keys);
-
+    endTimer("  Path calculation");
+    
 #ifdef OPTIMIZE_ALPHABET
     unmap(keys);
 #endif

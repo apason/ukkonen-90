@@ -109,10 +109,14 @@ int main (int argc, char *argv[]){
 
     /* Calculates the common superstring of the keywords using the greedy
      * heuristic as described in the publication by Esko Ukkonen 1990 */
+#ifdef INFO    
     startTimer("  Path calculation");
+#endif
     struct edge *paths = createPath((struct ac_machine *) acm, keys);
+#ifdef INFO
     endTimer("  Path calculation");
-    
+#endif
+
 #ifdef OPTIMIZE_ALPHABET
     unmap(keys);
 #endif

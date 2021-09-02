@@ -36,12 +36,7 @@ for file in $(ls $datadir) ; do
     length=$(wc -c results/$file.superstring | cut -f1 -d' ') >> results/dna_results_time
     original=($(wc -c "$datadir$file" | cut -d' ' -f1) - $(wc -l "$datadir$file" | cut -d' ' -f1))
 
-    echo "original: $original"
-    echo "superstr: $length"
-
     ratio=$(bc <<< "scale=10; $length/($original)")
-
-    echo "ratio: $ratio"
 
     echo "$ratio" >> results/dna_results_time
 

@@ -45,7 +45,7 @@ for goto in ${gotos[@]} ; do
 
             echo "Current file is $file"
 
-            ./memusage ../target/scs "$datadir$file" > "$result_dir$file"  > "$result_dir$file.superstring"
+            ./memusage ../target/scs "$datadir$file"  > "$result_dir$file.superstring"
 
             # NOTE THAT THE MEASURED MEMORY IS IN KILOBYTES (or kibibytes?)
             cat usedmem | tr -d '\n' >> "$result_dir"results

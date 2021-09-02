@@ -23,10 +23,12 @@ for ll in ${line_lengths[@]} ; do
 
                         cut=$(bc <<< "scale=10; $size/$input_size")
 
-                        echo -n "$file:$ll:$cut:  " >> duplicate_results
+                        echo -n "$file:$ll:$size:$cut:  " >> duplicate_results
 
-                        ../target/scs -b -l "$ll" -c "$cut" -f "$datadir$file" | grep "Removed duplicates:" | cut -d':' -f 2 >> duplicate_results
+                        ../target/scs -b -l "$ll" -c "$cut" -f "$datadir$file" > output
 
+                        grep "Removed duplicates:" | tr '\t' ' ' | tr -s ' ' | cut -d' ' -f 3 | tr -d '\n' >> duplicate_results
+                        grep "Compression ratio:" | tr '\t' ' ' | tr -s ' ' | cut -d' ' -f 3 >> duplicate_results
                 done
                 echo ""
         done

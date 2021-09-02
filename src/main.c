@@ -82,10 +82,14 @@ int main (int argc, char *argv[]){
     }
 
     /* Optimize the alphabet */
-#ifdef OPTIMIZE_ALPHABET    
+#ifdef OPTIMIZE_ALPHABET
+#ifdef INFO
     startTimer("  Alphabet optimization");
+#endif
     optimizeAlphabet(keys);
+#ifdef INFO
     endTimer("  Alphabet optimization");
+#endif
 #endif
     
     freeOptions(opts);

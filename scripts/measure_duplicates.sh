@@ -27,8 +27,8 @@ for ll in ${line_lengths[@]} ; do
 
                         ../target/scs -b -l "$ll" -c "$cut" -f "$datadir$file" > output
 
-                        grep "Removed duplicates:" | tr '\t' ' ' | tr -s ' ' | cut -d' ' -f 3 | tr -d '\n' >> duplicate_results
-                        grep "Compression ratio:" | tr '\t' ' ' | tr -s ' ' | cut -d' ' -f 3 >> duplicate_results
+                        grep "Removed duplicates:" output | tr '\t' ' ' | tr -s ' ' | cut -d' ' -f 3 | tr -d '\n' >> duplicate_results
+                        grep "Compression ratio:" output | tr '\t' ' ' | tr -s ' ' | cut -d' ' -f 3 >> duplicate_results
                 done
                 echo ""
         done

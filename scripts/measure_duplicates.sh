@@ -13,23 +13,27 @@ line_lengths=(128 256 512 1024 2048 4096 8192 16384)
 for ll in ${line_lengths[@]} ; do
 
         echo "Find duplicates with line length of $ll" >> duplicate_results
+        echo "Find duplicates with line length of $ll"
+
         for size in ${cuts[@]} ; do
 
-                echo "Find duplicates with input size of $size" >> duplicate_results
+            echo "Find duplicates with input size of $size" >> duplicate_results
+            echo "Find duplicates with input size of $size"
 
-                for file in $(ls $datadir) ; do
+            for file in $(ls $datadir) ; do
 
-                        input_size=$(wc -c "$datadir$file" | cut -d' ' -f 1)
 
-                        cut=$(bc <<< "scale=10; $size/$input_size")
+                input_size=$(wc -c "$datadir$file" | cut -d' ' -f 1)
 
-                        echo -n "$file:$ll:$size:$cut:  " >> duplicate_results
+                cut=$(bc <<< "scale=10; $size/$input_size")
 
-                        ../target/scs -b -l "$ll" -c "$cut" -f "$datadir$file" > output
+                echo -n "$file:$ll:$size:$cut:  " >> duplicate_results
 
-                        grep "Removed duplicates:" output | tr '\t' ' ' | tr -s ' ' | cut -d' ' -f 3 | tr -d '\n' >> duplicate_results
-                        grep "Compression ratio:" output | tr '\t' ' ' | tr -s ' ' | cut -d' ' -f 3 >> duplicate_results
-                done
-                echo ""
+                ../target/scs -b -l "$ll" -c "$cut" -f "$datadir$file" > output
+
+                grep "Removed duplicates:" output | tr '\t' ' ' | tr -s ' ' | cut -d' ' -f 3 | tr -d '\n' >> duplicate_results
+                grep "Compression ratio" output | tr '\t' ' ' | tr -s ' ' | cut -d' ' -f 3 >> duplicate_results
+            done
+            echo ""
         done
 done

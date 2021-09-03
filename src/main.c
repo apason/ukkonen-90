@@ -42,7 +42,9 @@ size_t cs_compression = 0;
 #endif
 
 #ifdef INFO
-size_t input_length = 0;
+
+size_t original_input_length = 0;
+size_t reduced_input_length = 0;
 #endif
 
 /*
@@ -151,8 +153,9 @@ int main (int argc, char *argv[]){
 #endif
 
 #ifdef INFO
-    printf("\nLength of the input:\t%ld\n", input_length);
-    printf("Length of the common superstring:\t%ld\n", input_length - cs_compression);
+    printf("\nLength of the input (reduced set):\t%ld\n", reduced_input_length);
+    printf("Length of the input (original input):\t%ld\n", original_input_length);
+    printf("Length of the common superstring:\t%ld\n", reduced_input_length - cs_compression);
     printf("Length of the superstring compression:\t");
 #endif
     
@@ -160,7 +163,8 @@ int main (int argc, char *argv[]){
     printf("%ld", cs_compression);
 #endif
 #ifdef INFO
-    printf("\nCompression ratio\t%lf\n", ((double)input_length - cs_compression)/input_length);
+    printf("\nCompression ratio for reduced input:\t%.3lf\n",((double)reduced_input_length - cs_compression)/reduced_input_length);
+    printf("Compression ratio for original input:\t%.3lf\n", ((double)reduced_input_length - cs_compression)/original_input_length);    
 #endif
 
     return EXIT_SUCCESS;

@@ -29,7 +29,8 @@ struct key_words{
 
 /* This variable is defined in main.c */
 #ifdef INFO
-extern size_t input_length;
+extern size_t original_input_length;
+extern size_t reduced_input_length;
 #endif
 
 extern const struct key_words * const readInput(const char * const file_name);

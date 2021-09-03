@@ -60,7 +60,7 @@ const struct key_words * const readInput(const char * const file_name){
 
 #ifdef INFO
         /* Set the global value to be used with statistics */
-        input_length += length -1;
+        original_input_length += length -1;
 #endif
 
         keys->len++;
@@ -110,7 +110,7 @@ const struct key_words * const readSamplesFromFile(const char * const file_name,
 
 #ifdef INFO
     /* Set the global value to be used for statistics */
-    input_length = iterations * row_length;
+    original_input_length = iterations * row_length;
 #endif
     
     for(size_t i = 0; i < iterations; i++){
@@ -151,6 +151,7 @@ static struct key_words * removeDuplicates(struct key_words *keys){
 
 #ifdef INFO
     size_t duplicate_count = 0;
+    reduced_input_length = original_input_length;
 #endif
 
     /* Move the last item to first. At this point the first element only
@@ -177,6 +178,7 @@ static struct key_words * removeDuplicates(struct key_words *keys){
 
 #ifdef INFO
         duplicate_count++;
+        reduced_input_length -= strlen(prev);
 #endif
     }
 
@@ -185,6 +187,7 @@ static struct key_words * removeDuplicates(struct key_words *keys){
     else{
 #ifdef INFO
         duplicate_count++;
+        reduced_input_length -= strlen(keys->R[keys->len-1]);
 #endif
         ;
     }
@@ -206,7 +209,7 @@ static struct key_words * removeDuplicates(struct key_words *keys){
 
 static struct key_words * initKeys(void){
 
-    struct key_words * keys = malloc(sizeof(keys));
+    struct key_words * keys = malloc(sizeof(*keys));
     checkNULL(keys, "malloc");
 
     keys->R = malloc(sizeof(keys->R) + 1);

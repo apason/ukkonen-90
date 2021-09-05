@@ -9,12 +9,18 @@
 
 STATE gotoGet(goto_function g, STATE state, ALPHABET key){
 
-    return (*g[state])[key];
+    if(key == 0)
+        printf("get request for key 0\n");
+
+    return (*g[state])[key -1];
 }
 
 void gotoSet(goto_function g, STATE state, ALPHABET key, STATE value){
+
+    if(key == 0)
+        printf("set request for key 0\n");
     
-    (*g[state])[key] = value;
+    (*g[state])[key -1] = value;
 }
 
 void gotoInit(goto_function g, size_t len){
@@ -28,6 +34,7 @@ void gotoInit(goto_function g, size_t len){
     memset(g[len], 0, ALPHABET_BYTES);
 }
 
+// not changed after alphabet_max
 void printGotoFunction(goto_function g, size_t len){
 
     printf("Printing goto function in form (character, state). Goto transitions (from and to) state 1 are not shown.\n");

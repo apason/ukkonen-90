@@ -31,6 +31,8 @@ for ll in ${line_lengths[@]} ; do
                 # X input_size=$(wc -c "$datadir$file" | cut -d' ' -f 1)
 
                 # X cut=$(bc <<< "scale=10; $size/$input_size")
+                # Y percentage line
+                cut=$size
 
                 echo -n "$file:$ll:$size:" >> duplicate_results
 

@@ -51,7 +51,10 @@ static void handleKey(struct ac_machine * const acm, char *key){
 
         gotoSet(acm->g, state, key[p], acm->len);
 
-        qPut(acm->links[state], acm->len);
+        if(acm->links[state] == NULL)
+            acm->links[state] = newAlphabetQueue();
+
+        qAPut(acm->links[state], acm->len);
         state = acm->len;
     }
     acm->leaf[state] = 1;
@@ -139,9 +142,9 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
 
         r = qGet(q);
 
-        while(!qEmpty(acm->links[r])){
+        while(!qAEmpty(acm->links[r])){
 
-            STATE s = qGet(acm->links[r]);
+            STATE s = qAGet(acm->links[r]);
 
             qPut(q, s);
             acm->d[s] = acm->d[r] +1;
@@ -155,7 +158,9 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
             /* Filter out other proper substrings */
             acm->F[acm->E[acm->f[s]]] = 1;
         }
+        //free(acm->links[r]);
     }
+    //free(acm->links);
 }
 
 /* Path calculation algorithm as described in Ukkonen 1990: Algorithm 2 */
@@ -334,8 +339,13 @@ static struct ac_machine * initMachine(const struct key_words * const keys){
 
     acm->F = malloc(sizeof(STATE) * keys->len);
     checkNULL(acm->f, "malloc");
-    
     memset(acm->F, 0, sizeof(STATE) * keys->len);
+
+    acm->links = malloc(sizeof(struct alphabet_queue *) * STATE_MAX);
+    checkNULL(acm->links, "malloc");
+    /* Here we assume that NULL is 0 */
+    memset(acm->links, 0, sizeof(struct alphabet_queuq *) * STATE_MAX);
+    
     
     acm->B = 0;
 
@@ -351,7 +361,6 @@ static struct ac_machine * initMachine(const struct key_words * const keys){
     for(int i = 0; i < STATE_MAX; i++){
         acm->supporters_set[i] = newQueue();
         acm->P[i] = newQueue();
-        acm->links[i] = newQueue();
     }
 
     memset(acm->leaf, 0, sizeof(acm->leaf));

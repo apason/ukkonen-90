@@ -1,7 +1,8 @@
 #include <stdio.h>  // NULL
 #include <stdlib.h> // malloc(), free()
+#include <string.h> // memset()
 
-#include "init.h"   // STATE
+#include "init.h"   // STATE ALPHABET_MAX
 #include "fifo.h"   // struct queue[_node]
 
 /* 
@@ -118,4 +119,56 @@ void freeQueue(struct queue * const q){
     }
 
     free(q);
+}
+
+
+/*
+ * Removes and returns the first element of the fifo
+ */
+STATE qAGet(struct alphabet_queue * const q){
+
+    if(q->first == q->last)
+        return 0;
+
+    return q->data[q->first++];
+}
+
+/*
+ * Returns 1 if the given fifo is empty, 0 otherwise
+ */
+int qAEmpty(const struct alphabet_queue * const q){
+
+    if(q == NULL)
+        return 1;
+
+    if(q->first == q->last)
+        return 1;
+
+    return 0;
+}
+
+/*
+ * Inserts an element to the end of the fifo.
+ */
+int qAPut(struct alphabet_queue * const q, STATE s){
+
+    q->data[q->last++] = s;
+
+    return 0;
+}
+
+/* 
+ * Returns a new empty alphabet_queue
+ */
+struct alphabet_queue * newAlphabetQueue(void){
+
+    struct alphabet_queue * q = malloc(sizeof(*q));
+
+    checkNULL(q, "malloc");
+
+    q->first = 0;
+    q->last = 0;
+    memset(q->data, 0, sizeof(q->data));
+
+    return q;
 }

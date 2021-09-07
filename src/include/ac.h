@@ -18,19 +18,19 @@ extern size_t cs_compression;
  */
 struct ac_machine {
     goto_function g;
-    STATE *F; // entry for every key. all values are different. not possible to optimize
+    STATE *F;
     STATE B;
-    STATE E[STATE_MAX]; // Only leaf nodes has nonzero value. Could be optimized using a tree.
-    STATE d[STATE_MAX]; // Depth of the state. All states has nonzero value.
-    STATE b[STATE_MAX]; // reverse ordering od the bfs. Not possible to optimize.
-    STATE f[STATE_MAX]; // failure link. Many zero values? might be optimized with a tree?
-    STATE first[STATE_MAX]; // only |key set| elements!
-    STATE last[STATE_MAX]; // only |key set| elements!
-    STATE forbidden[STATE_MAX]; // binary variable. Why the type is STATE? basically all states are first zero, then 1. Tree structure does not help? 
-    struct queue *supporters_set[STATE_MAX]; // Set of indices of the keywords whose goto path goes through this node. For low depth nodes this is quite a large set. For high depth this is very thin.
-    struct queue *P[STATE_MAX]; // list of key word indicies for which state is on a failure path that starts from F(i) AND hampath to be created does not yet contain an overlap (xi, xj) for any j.
-    linksQ **links; // set of states that has ingoing goto transition from this node. Can not exeed ALPHABET_MAX. 
-    STATE leaf[STATE_MAX]; // binary variable. Why is this type of STATE? (does not matter in single byte alphabets though)
+    STATE E[STATE_MAX];
+    STATE d[STATE_MAX];
+    STATE b[STATE_MAX];
+    STATE f[STATE_MAX];
+    STATE first[STATE_MAX];
+    STATE last[STATE_MAX];
+    STATE forbidden[STATE_MAX];
+    struct queue *supporters_set[STATE_MAX];
+    struct queue *P[STATE_MAX];
+    linksQ **links;
+    STATE leaf[STATE_MAX];
     size_t len;
 };
 

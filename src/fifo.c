@@ -110,8 +110,11 @@ int qPut(struct queue * const q, STATE s){
  * Returns 1 if the given fifo is empty, 0 otherwise
  */
 int qEmpty(const struct queue * const q){
- 
-   if(q->size < 1)
+
+    if(q == NULL)
+        return 1;
+    
+    if(q->size < 1)
         return 1;
 
     return 0;

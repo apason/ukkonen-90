@@ -44,10 +44,9 @@ typedef struct alphabet_queue linksQ;
 typedef struct queue linksQ;
 #endif
 
-// toimiiko pointteri typedefillä ? koita definellä 
-extern int (*linksQEmpty)(const linksQ * const);;
-extern STATE (*linksQGet)(linksQ * const);
-extern int (*linksQPut)(linksQ * const, STATE);
-extern linksQ * (*linksNewQueue)(void);
+extern int      (*linksQPut)        (linksQ * const, STATE);
+extern int      (*linksQEmpty)(const linksQ * const);
+extern STATE    (*linksQGet)        (linksQ * const);
+extern linksQ * (*linksNewQueue)    (void);
 
 #endif /* FIFO_H */

@@ -17,6 +17,17 @@
  * of memory at a time.
  */
 
+#ifdef OPTIMIZE_LINKS
+int (*linksQEmpty)(const linksQ * const) = qAEmpty;
+STATE (*linksQGet)(linksQ * const) = qAGet;
+int (*linksQPut)(linksQ * const, STATE) = qAPut;
+linksQ * (*linksNewQueue)(void) = newAlphabetQueue;
+#else
+int (*linksQEmpty)(const linksQ * const) = qEmpty;
+STATE (*linksQGet)(linksQ * const) = qGet;
+int (*linksQPut)(linksQ * const, STATE) = qPut;
+linksQ * (*linksNewQueue)(void) = newQueue;
+#endif
 
 /* 
  * Returns a new empty fifo

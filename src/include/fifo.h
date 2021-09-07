@@ -38,4 +38,16 @@ extern int    qAPut (      struct alphabet_queue * const q, STATE s);
 
 extern struct alphabet_queue * newAlphabetQueue(void);
 
+#ifdef OPTIMIZE_LINKS
+typedef struct alphabet_queue linksQ;
+#else
+typedef struct queue linksQ;
+#endif
+
+// toimiiko pointteri typedefillä ? koita definellä 
+extern int (*linksQEmpty)(const linksQ * const);;
+extern STATE (*linksQGet)(linksQ * const);
+extern int (*linksQPut)(linksQ * const, STATE);
+extern linksQ * (*linksNewQueue)(void);
+
 #endif /* FIFO_H */

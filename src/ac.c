@@ -18,6 +18,7 @@ static void createState        (struct ac_machine * const acm);
 
 static struct ac_machine * initMachine(const struct key_words * const keys);
 
+
 /* Goto function construction as described in Aho & Corasic 1975: Algorithm 2 */
 static void gotoFunction(struct ac_machine * const acm, const struct key_words * const keys){
 
@@ -52,9 +53,9 @@ static void handleKey(struct ac_machine * const acm, char *key){
         gotoSet(acm->g, state, key[p], acm->len);
 
         if(acm->links[state] == NULL)
-            acm->links[state] = newAlphabetQueue();
+            acm->links[state] = linksNewQueue();
 
-        qAPut(acm->links[state], acm->len);
+        linksQPut(acm->links[state], acm->len);
         state = acm->len;
     }
     acm->leaf[state] = 1;
@@ -142,9 +143,9 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
 
         r = qGet(q);
 
-        while(!qAEmpty(acm->links[r])){
+        while(!linksQEmpty(acm->links[r])){
 
-            STATE s = qAGet(acm->links[r]);
+            STATE s = linksQGet(acm->links[r]);
 
             qPut(q, s);
             acm->d[s] = acm->d[r] +1;
@@ -158,7 +159,7 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
             /* Filter out other proper substrings */
             acm->F[acm->E[acm->f[s]]] = 1;
         }
-        //free(acm->links[r]);
+        //free(acm->links[r]); !!! regular queue must be freed differently
     }
     //free(acm->links);
 }
@@ -341,10 +342,10 @@ static struct ac_machine * initMachine(const struct key_words * const keys){
     checkNULL(acm->f, "malloc");
     memset(acm->F, 0, sizeof(STATE) * keys->len);
 
-    acm->links = malloc(sizeof(struct alphabet_queue *) * STATE_MAX);
+    acm->links = malloc(sizeof(linksQ *) * STATE_MAX);
     checkNULL(acm->links, "malloc");
     /* Here we assume that NULL is 0 */
-    memset(acm->links, 0, sizeof(struct alphabet_queuq *) * STATE_MAX);
+    memset(acm->links, 0, sizeof(linksQ *) * STATE_MAX);
     
     
     acm->B = 0;

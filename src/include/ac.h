@@ -29,7 +29,7 @@ struct ac_machine {
     STATE forbidden[STATE_MAX]; // binary variable. Why the type is STATE? basically all states are first zero, then 1. Tree structure does not help? 
     struct queue *supporters_set[STATE_MAX]; // Set of indices of the keywords whose goto path goes through this node. For low depth nodes this is quite a large set. For high depth this is very thin.
     struct queue *P[STATE_MAX]; // list of key word indicies for which state is on a failure path that starts from F(i) AND hampath to be created does not yet contain an overlap (xi, xj) for any j.
-    struct alphabet_queue **links; // set of states that has ingoing goto transition from this node. Can not exeed ALPHABET_MAX. 
+    linksQ **links; // set of states that has ingoing goto transition from this node. Can not exeed ALPHABET_MAX. 
     STATE leaf[STATE_MAX]; // binary variable. Why is this type of STATE? (does not matter in single byte alphabets though)
     size_t len;
 };

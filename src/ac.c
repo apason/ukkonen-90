@@ -26,7 +26,7 @@ static void gotoFunction(struct ac_machine * const acm, const struct key_words *
     for(int i = 1; i < keys->len; i++)
         handleKey(acm, keys->R[i]);
 
-    for(int i = 0; i < ALPHABET_MAX; i++){
+    for(int i = 1; i <= ALPHABET_MAX; i++){
         if(gotoGet(acm->g, 1, i) == 0)
             gotoSet(acm->g, 1, i, 1);
     }
@@ -64,7 +64,7 @@ static void failureFunction(struct ac_machine * const acm){
     ALPHABET c;
     STATE r, s, t;
 
-    for(c = 0; c < ALPHABET_MAX; c++){
+    for(c = 1; c <= ALPHABET_MAX; c++){
 
         if(gotoGet(acm->g, 1, c) == 1)
             continue;
@@ -78,7 +78,7 @@ static void failureFunction(struct ac_machine * const acm){
     while(!qEmpty(queue)){
         r = qGet(queue);
 
-        for(c = 0; c < ALPHABET_MAX; c++){
+        for(c = 1; c <= ALPHABET_MAX; c++){
 
             if(gotoGet(acm->g, r, c) == 0)
                 continue;

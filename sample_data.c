@@ -9,11 +9,11 @@
 
 void main(void){
 
-    FILE *input = fopen("input", "r");
+    FILE *input = fopen("input", "rb");
     FILE *output;
     char output_name[25];
 
-    char buffer[102];
+    char buffer[103];
 
     if(input == NULL){
         perror("fopen");
@@ -48,7 +48,12 @@ void main(void){
 
             fseek(input, current * (101), SEEK_SET);
 
-            fread(buffer, 101, 1, input);
+            memset(buffer, 0, sizeof(buffer));
+            if(fread(buffer, 1, 101, input) != 101){
+                j--;
+                index[current] = 0;
+                continue;
+            }
 
             fwrite(buffer, 101, 1, output);
 

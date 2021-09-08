@@ -164,7 +164,9 @@ int main (int argc, char *argv[]){
 #endif
 #ifdef INFO
     printf("\nCompression ratio for reduced input:\t%.3lf\n",((double)reduced_input_length - cs_compression)/reduced_input_length);
-    printf("Compression ratio for original input:\t%.3lf\n", ((double)reduced_input_length - cs_compression)/original_input_length);    
+    printf("Compression ratio for original input:\t%.3lf\n", ((double)reduced_input_length - cs_compression)/original_input_length);
+
+    printf("The constructed AC-machine has %ld states for which %ld are internal (when all keys are the same length) and %ld are leaf nodes\n", acm->len, acm->len - keys->len, keys->len);
 #endif
 
     return EXIT_SUCCESS;

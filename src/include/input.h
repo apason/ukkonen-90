@@ -24,7 +24,7 @@
 struct key_words{
     char **R;
     int *meta;
-    int len;
+    size_t len;
 };
 
 /* This variable is defined in main.c */

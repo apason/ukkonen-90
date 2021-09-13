@@ -20,13 +20,13 @@ struct ac_machine {
     goto_function g;
     STATE *F;
     STATE B;
-    STATE E[STATE_MAX];
-    STATE d[STATE_MAX];
-    STATE b[STATE_MAX];
+    STATE *E;
+    STATE *d;
+    STATE *b;
     STATE f[STATE_MAX];
-    STATE first[STATE_MAX];
-    STATE last[STATE_MAX];
-    STATE forbidden[STATE_MAX];
+    STATE *first;
+    STATE *last;
+    STATE *forbidden;
     struct queue *supporters_set[STATE_MAX];
     struct queue *P[STATE_MAX];
 #ifdef LINKSQ_ARRAY

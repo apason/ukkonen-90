@@ -1,7 +1,8 @@
 #include <stdio.h>  // NULL
 #include <stdlib.h> // malloc(), free()
+#include <string.h> // memset()
 
-#include "init.h"   // STATE
+#include "init.h"   // STATE ALPHABET_MAX
 #include "fifo.h"   // struct queue[_node]
 
 /* 
@@ -16,6 +17,17 @@
  * of memory at a time.
  */
 
+#ifdef OPTIMIZE_LINKS
+int      (*linksQEmpty)(const linksQ * const)        = qAEmpty;
+STATE    (*linksQGet)        (linksQ * const)        = qAGet;
+int      (*linksQPut)        (linksQ * const, STATE) = qAPut;
+linksQ * (*linksNewQueue)    (void)                  = newAlphabetQueue;
+#else
+int      (*linksQEmpty)(const linksQ * const)        = qEmpty;
+STATE    (*linksQGet)        (linksQ * const)        = qGet;
+int      (*linksQPut)        (linksQ * const, STATE) = qPut;
+linksQ * (*linksNewQueue)    (void)                  = newQueue;
+#endif
 
 /* 
  * Returns a new empty fifo
@@ -98,8 +110,11 @@ int qPut(struct queue * const q, STATE s){
  * Returns 1 if the given fifo is empty, 0 otherwise
  */
 int qEmpty(const struct queue * const q){
- 
-   if(q->size < 1)
+
+    if(q == NULL)
+        return 1;
+    
+    if(q->size < 1)
         return 1;
 
     return 0;
@@ -118,4 +133,56 @@ void freeQueue(struct queue * const q){
     }
 
     free(q);
+}
+
+
+/*
+ * Removes and returns the first element of the fifo
+ */
+STATE qAGet(struct alphabet_queue * const q){
+
+    if(q->first == q->last)
+        return 0;
+
+    return q->data[q->first++];
+}
+
+/*
+ * Returns 1 if the given fifo is empty, 0 otherwise
+ */
+int qAEmpty(const struct alphabet_queue * const q){
+
+    if(q == NULL)
+        return 1;
+
+    if(q->first == q->last)
+        return 1;
+
+    return 0;
+}
+
+/*
+ * Inserts an element to the end of the fifo.
+ */
+int qAPut(struct alphabet_queue * const q, STATE s){
+
+    q->data[q->last++] = s;
+
+    return 0;
+}
+
+/* 
+ * Returns a new empty alphabet_queue
+ */
+struct alphabet_queue * newAlphabetQueue(void){
+
+    struct alphabet_queue * q = malloc(sizeof(*q));
+
+    checkNULL(q, "malloc");
+
+    q->first = 0;
+    q->last = 0;
+    memset(q->data, 0, sizeof(q->data));
+
+    return q;
 }

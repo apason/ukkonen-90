@@ -1,7 +1,7 @@
 #ifndef FIFO_H
 #define FIFO_H
 
-#include "init.h" // STATE
+#include "init.h" // STATE ALPHABET_MAX
 
 /* The fifo node that is used only internally in queue */
 struct queue_node{
@@ -24,5 +24,29 @@ extern int   qPut     (      struct queue * const q, STATE s);
 extern void  freeQueue(      struct queue * const q         );
 
 extern struct queue * newQueue (void);
+
+
+struct alphabet_queue{
+    STATE first;
+    STATE last;
+    STATE data[ALPHABET_MAX];
+};
+
+extern int   qAEmpty(const struct alphabet_queue * const q         );
+extern STATE qAGet  (      struct alphabet_queue * const q         );
+extern int    qAPut (      struct alphabet_queue * const q, STATE s);
+
+extern struct alphabet_queue * newAlphabetQueue(void);
+
+#ifdef OPTIMIZE_LINKS
+typedef struct alphabet_queue linksQ;
+#else
+typedef struct queue linksQ;
+#endif
+
+extern int      (*linksQPut)        (linksQ * const, STATE);
+extern int      (*linksQEmpty)(const linksQ * const);
+extern STATE    (*linksQGet)        (linksQ * const);
+extern linksQ * (*linksNewQueue)    (void);
 
 #endif /* FIFO_H */

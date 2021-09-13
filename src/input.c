@@ -22,7 +22,7 @@ const struct key_words * const readInput(const char * const file_name){
 #ifdef INFO
     startTimer("  Reading of the input");
 #endif
-    
+
     char line[MAX_LINE];
     int  length;
 
@@ -44,6 +44,10 @@ const struct key_words * const readInput(const char * const file_name){
 
         if(strlen(line) == MAX_LINE -1 && line[MAX_LINE -2] != '\n')
             fprintf(stderr, "Warning: Input file contains longer lines than MAX_LINE (%d)\n", MAX_LINE);
+#ifndef LONG_KEYS
+        if(strlen(line) > 256)
+            fprintf(stderr, "WARNING: LONG_KEYS not defined but keys over 256 are found\n");
+#endif
 
         /* Skip empty lines */
         if(strlen(line) < 1 || line[0] == '\n')
@@ -89,6 +93,11 @@ const struct key_words * const readInput(const char * const file_name){
  */
 const struct key_words * const readSamplesFromFile(const char * const file_name, size_t row_length, float cut){
 
+#ifndef LONG_KEYS
+    if(row_length > 256)
+        fprintf(stderr, "WARNING: LONG_KEYS is not defined but row_length is over 256");
+#endif
+    
     srand(time(NULL));
     
     char line[row_length +1];

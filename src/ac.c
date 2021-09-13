@@ -18,6 +18,7 @@ static void createState        (struct ac_machine * const acm);
 
 static struct ac_machine * initMachine(const struct key_words * const keys);
 
+static void initAuxiliaryFunctions(struct ac_machine * const acm, size_t k);
 
 /* Goto function construction as described in Aho & Corasic 1975: Algorithm 2 */
 static void gotoFunction(struct ac_machine * const acm, const struct key_words * const keys){
@@ -291,7 +292,8 @@ const struct ac_machine * const createMachine(const struct key_words * const key
     endTimer("    Failure function calculation");
     startTimer("    Calculation of auxiliary functions");
 #endif
-    
+
+    initAuxiliaryFunctions(acm, keys->len);
     auxiliaryFunctions(acm, keys);
 
 #ifdef INFO    
@@ -351,17 +353,46 @@ static void createState(struct ac_machine * const acm){
     gotoInit(acm->g, acm->len);
 }
 
+/* Allocates sizeof(TYPE) * LEN memory and stores the pointer to acm->X    */
+/* The allocated memory region is filled with zeros.                       */
+/* Note that this macro assumes that variable acm is available when called */
+#define ALLOCATE(X, TYPE, LEN) do{             \
+        acm->X = malloc(sizeof(TYPE) * LEN);   \
+        checkNULL(acm->X, "malloc");           \
+        memset(acm->X, 0, sizeof(TYPE) * LEN); \
+    } while (0);
+ 
+static void initAuxiliaryFunctions(struct ac_machine * const acm, size_t k){
+
+    ALLOCATE(F, STATE, k);
+
+    acm->B = 0;
+
+    ALLOCATE(E, STATE, MAX_STATE);
+    ALLOCATE(d, STATE, MAX_STATE);
+    ALLOCATE(b, STATE, MAX_STATE);
+    ALLOCATE(first, STATE, k);
+    ALLOCATE(last, STATE, k);
+    ALLOCATE(forbidden, uint8_t, k);
+
+    
+    /* Many calls to malloc due to queue initializations */
+    for(int i = 0; i < STATE_MAX; i++){
+        acm->supporters_set[i] = newQueue();
+        acm->P[i] = newQueue();
+    }
+
+}
 /* Initializes (allocates memory) and sets the default values  of the ac machine */
 static struct ac_machine * initMachine(const struct key_words * const keys){
     
     struct ac_machine * acm = malloc(sizeof(*acm));
     checkNULL(acm, "malloc");
 
+    /* If we had better approximation of the maximum number of states */
+    /* we would allocate all needed memory here instead of setting g */
+    /* to null and reallocating iteratively in createState() */
     acm->g = NULL;
-
-    acm->F = malloc(sizeof(STATE) * keys->len);
-    checkNULL(acm->f, "malloc");
-    memset(acm->F, 0, sizeof(STATE) * keys->len);
 
 #ifdef LINKSQ_ARRAY
     acm->links = malloc(sizeof(linksQ) * STATE_MAX);
@@ -375,22 +406,7 @@ static struct ac_machine * initMachine(const struct key_words * const keys){
     memset(acm->links, 0, sizeof(linksQ *) * STATE_MAX);
 #endif
     
-    
-    acm->B = 0;
-
-    memset(acm->E, 0, sizeof(acm->E));
-    memset(acm->d, 0, sizeof(acm->d));
-    memset(acm->b, 0, sizeof(acm->b));
     memset(acm->f, 0, sizeof(acm->f));
-    memset(acm->first, 0, sizeof(acm->first));
-    memset(acm->last, 0, sizeof(acm->last));
-    memset(acm->forbidden, 0, sizeof(acm->forbidden));
-
-    /* Many calls to malloc due to queue initializations */
-    for(int i = 0; i < STATE_MAX; i++){
-        acm->supporters_set[i] = newQueue();
-        acm->P[i] = newQueue();
-    }
 
     memset(acm->leaf, 0, sizeof(acm->leaf));
 

@@ -353,7 +353,9 @@ static void createState(struct ac_machine * const acm){
     gotoInit(acm->g, acm->len);
 }
 
-/* Use this macro only in the next function */
+/* Allocates sizeof(STATE) memory for every state in the AC-machine */
+/* Saves the pointer to the allocated memory region to acm->X       */
+/* Use this macro only in the next function                         */
 #define ALLOCATE(X) do{ \
         acm->X = malloc(sizeof(STATE) * acm->len);   \
         checkNULL(acm->X, "malloc");                 \

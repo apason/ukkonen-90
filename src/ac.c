@@ -389,8 +389,10 @@ static struct ac_machine * initMachine(const struct key_words * const keys){
     struct ac_machine * acm = malloc(sizeof(*acm));
     checkNULL(acm, "malloc");
 
+    /* If we had better approximation of the maximum number of states */
+    /* we would allocate all needed memory here instead of setting g */
+    /* to null and reallocating iteratively in createState() */
     acm->g = NULL;
-
 
 #ifdef LINKSQ_ARRAY
     acm->links = malloc(sizeof(linksQ) * STATE_MAX);

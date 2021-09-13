@@ -21,12 +21,16 @@ struct ac_machine {
     STATE *F;
     STATE B;
     STATE *E;
-    STATE *d;
+#ifdef LONG_KEYS
+    uint16_t *d;
+#else
+    uint8_t  *d;
+#endif
     STATE *b;
     STATE f[STATE_MAX];
     STATE *first;
     STATE *last;
-    STATE *forbidden;
+    uint8_t *forbidden;
     struct queue *supporters_set[STATE_MAX];
     struct queue *P[STATE_MAX];
 #ifdef LINKSQ_ARRAY

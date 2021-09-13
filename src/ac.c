@@ -353,29 +353,27 @@ static void createState(struct ac_machine * const acm){
     gotoInit(acm->g, acm->len);
 }
 
-/* Allocates sizeof(STATE) memory for every state in the AC-machine */
-/* Saves the pointer to the allocated memory region to acm->X       */
-/* Use this macro only in the next function                         */
-#define ALLOCATE(X) do{ \
-        acm->X = malloc(sizeof(STATE) * acm->len);   \
-        checkNULL(acm->X, "malloc");                 \
-        memset(acm->X, 0, sizeof(STATE) * acm->len); \
+/* Allocates sizeof(TYPE) * LEN memory and stores the pointer to acm->X    */
+/* The allocated memory region is filled with zeros.                       */
+/* Note that this macro assumes that variable acm is available when called */
+#define ALLOCATE(X, TYPE, LEN) do{             \
+        acm->X = malloc(sizeof(TYPE) * LEN);   \
+        checkNULL(acm->X, "malloc");           \
+        memset(acm->X, 0, sizeof(TYPE) * LEN); \
     } while (0);
  
 static void initAuxiliaryFunctions(struct ac_machine * const acm, size_t k){
 
-    acm->F = malloc(sizeof(STATE) * k);
-    checkNULL(acm->F, "malloc");
-    memset(acm->F, 0, sizeof(STATE) * k);
+    ALLOCATE(F, STATE, k);
 
     acm->B = 0;
 
-    ALLOCATE(E);
-    ALLOCATE(d);
-    ALLOCATE(b);
-    ALLOCATE(first);
-    ALLOCATE(last);
-    ALLOCATE(forbidden);
+    ALLOCATE(E, STATE, MAX_STATE);
+    ALLOCATE(d, STATE, MAX_STATE);
+    ALLOCATE(b, STATE, MAX_STATE);
+    ALLOCATE(first, STATE, k);
+    ALLOCATE(last, STATE, k);
+    ALLOCATE(forbidden, uint8_t, k);
 
     
     /* Many calls to malloc due to queue initializations */

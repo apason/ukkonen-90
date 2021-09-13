@@ -52,10 +52,16 @@ static void handleKey(struct ac_machine * const acm, char *key){
 
         gotoSet(acm->g, state, key[p], acm->len);
 
+#ifndef LINKSQ_ARRAY
         if(acm->links[state] == NULL)
             acm->links[state] = linksNewQueue();
+#endif
 
+#ifdef LINKSQ_ARRAY        
+        linksQPut(&acm->links[state], acm->len);
+#else
         linksQPut(acm->links[state], acm->len);
+#endif
         state = acm->len;
     }
     acm->leaf[state] = 1;
@@ -143,10 +149,13 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
 
         r = qGet(q);
 
+#ifdef LINKSQ_ARRAY
+        while(!linksQEmpty(&acm->links[r])){
+            STATE s = linksQGet(&acm->links[r]);
+#else
         while(!linksQEmpty(acm->links[r])){
-
             STATE s = linksQGet(acm->links[r]);
-
+#endif
             qPut(q, s);
             acm->d[s] = acm->d[r] +1;
             acm->b[s] = acm->B;
@@ -159,9 +168,21 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
             /* Filter out other proper substrings */
             acm->F[acm->E[acm->f[s]]] = 1;
         }
-        //free(acm->links[r]); !!! regular queue must be freed differently
+        
+#ifndef LINKSQ_ARRAY
+        // The queue SHOULD be empty which means we can just free the header
+        // free(acm->links[r]);
+        
+        // Do we want to free these empty queues at all, its is very slow..
+#endif
+        
+                                 
     }
-    //free(acm->links);
+#ifdef LINKSQ_ARRAY
+        free(acm->links);
+#else
+        // Do we want to free these empty queues (just queue headers) at all?
+#endif
 }
 
 /* Path calculation algorithm as described in Ukkonen 1990: Algorithm 2 */
@@ -342,10 +363,17 @@ static struct ac_machine * initMachine(const struct key_words * const keys){
     checkNULL(acm->f, "malloc");
     memset(acm->F, 0, sizeof(STATE) * keys->len);
 
+#ifdef LINKSQ_ARRAY
+    acm->links = malloc(sizeof(linksQ) * STATE_MAX);
+    checkNULL(acm->links, "malloc");
+    /* Here we assume that NULL is 0 */
+    memset(acm->links, 0, sizeof(linksQ) * STATE_MAX);
+#else
     acm->links = malloc(sizeof(linksQ *) * STATE_MAX);
     checkNULL(acm->links, "malloc");
     /* Here we assume that NULL is 0 */
     memset(acm->links, 0, sizeof(linksQ *) * STATE_MAX);
+#endif
     
     
     acm->B = 0;
@@ -370,3 +398,4 @@ static struct ac_machine * initMachine(const struct key_words * const keys){
 
     return acm;
 }
+ 

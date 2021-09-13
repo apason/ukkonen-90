@@ -29,7 +29,11 @@ struct ac_machine {
     STATE forbidden[STATE_MAX];
     struct queue *supporters_set[STATE_MAX];
     struct queue *P[STATE_MAX];
+#ifdef LINKSQ_ARRAY
+    linksQ *links;
+#else
     linksQ **links;
+#endif
     STATE leaf[STATE_MAX];
     size_t len;
 };

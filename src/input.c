@@ -221,7 +221,7 @@ static struct key_words * initKeys(void){
     struct key_words * keys = malloc(sizeof(*keys));
     checkNULL(keys, "malloc");
 
-    keys->R = malloc(sizeof(keys->R) + 1);
+    keys->R = malloc(sizeof(keys->R) * 2);
     checkNULL(keys->R, "malloc");
 
     /* This should never be read */

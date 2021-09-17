@@ -11,6 +11,7 @@ struct key_words * NewArray(int size){
     return A;
 }
 
+// Note: R->len is not allocated !
 void add(struct key_words *R, char *S){
     R->R = (char **) realloc (R->R, (R->len + 1) * sizeof (char*));
     R->R[R->len] = S;
@@ -34,13 +35,18 @@ static struct key_words * Combine(struct key_words * A1, struct key_words * A2, 
 	add(R, A4->R[i]);
 
     free(A1->R);
+    free(A1);
     free(A2->R);
+    free(A2);
     free(A3->R);
+    free(A3);
     free(A4->R);
+    free(A4);
 
     return R;
 }
 
+/* Note that after StringQuickSort the keys->R table does not contain a sparse memory slot! */
 struct key_words * StringQuickSort(struct key_words *R, int l){
 
     if(R->len <= 1)
@@ -79,6 +85,7 @@ struct key_words * StringQuickSort(struct key_words *R, int l){
     }
 
     free(R->R);
+    free(R);
 
     return Combine(R_null,
 		   StringQuickSort(R_less, l),

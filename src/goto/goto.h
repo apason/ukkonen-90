@@ -36,7 +36,7 @@
 
 
 #ifdef ARRAY_GOTO
-typedef STATE (**goto_function)[ALPHABET_MAX];
+typedef STATE (**goto_function)[];
 #endif
 
 #ifdef RB_TREE_GOTO

@@ -7,10 +7,10 @@
 
 static ALPHABET *map_b;
 
-void optimizeAlphabet(const struct key_words * keys){
+size_t optimizeAlphabet(const struct key_words * keys){
 
-    ALPHABET * map_a = (ALPHABET*) malloc(sizeof(*map_a) * ((size_t) (1 << sizeof(ALPHABET) * 8) -1));
-    memset(map_a, 0, sizeof(*map_a) * ((size_t) (1 << sizeof(ALPHABET) * 8) -1));
+    ALPHABET * map_a = (ALPHABET*) malloc(sizeof(*map_a) * ALPHABET_MAX);
+    memset(map_a, 0, sizeof(*map_a) * ALPHABET_MAX);
 
     map_b = (ALPHABET*) malloc(sizeof(*map_b) * ALPHABET_MAX);
 
@@ -35,9 +35,11 @@ void optimizeAlphabet(const struct key_words * keys){
         for(size_t char_i = 0; char_i < char_max; char_i++)
             keys->R[key_i][char_i] = map_a[keys->R[key_i][char_i]];
     }
+
+    return counter -1;
 }
 
-extern void unmap(const struct key_words * keys){
+void unmap(const struct key_words * keys){
 
     for(size_t key_i = 1; key_i < keys->len; key_i++){
         size_t char_max = strlen(keys->R[key_i]);

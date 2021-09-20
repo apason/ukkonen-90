@@ -24,11 +24,11 @@ static void initAuxiliaryFunctions(struct ac_machine * const acm, size_t k);
 static void gotoFunction(struct ac_machine * const acm, const struct key_words * const keys){
 
     createState(acm);
-    
+
     for(int i = 1; i < keys->len; i++)
         handleKey(acm, keys->R[i]);
 
-    for(int i = 1; i <= ALPHABET_MAX; i++){
+    for(int i = 1; i <= real_alphabet_size; i++){
         if(gotoGet(acm->g, 1, i) == 0)
             gotoSet(acm->g, 1, i, 1);
     }
@@ -75,7 +75,7 @@ static void failureFunction(struct ac_machine * const acm){
     ALPHABET c;
     STATE r, s, t;
 
-    for(c = 1; c <= ALPHABET_MAX; c++){
+    for(c = 1; c <= real_alphabet_size; c++){
 
         if(gotoGet(acm->g, 1, c) == 1)
             continue;
@@ -89,7 +89,7 @@ static void failureFunction(struct ac_machine * const acm){
     while(!qEmpty(queue)){
         r = qGet(queue);
 
-        for(c = 1; c <= ALPHABET_MAX; c++){
+        for(c = 1; c <= real_alphabet_size; c++){
 
             if(gotoGet(acm->g, r, c) == 0)
                 continue;
@@ -394,16 +394,20 @@ static struct ac_machine * initMachine(const struct key_words * const keys){
     /* to null and reallocating iteratively in createState() */
     acm->g = NULL;
 
+    // Tarvitaanko tätä ifdefiä? Onko sama asia?
 #ifdef LINKSQ_ARRAY
-    acm->links = malloc(sizeof(linksQ) * STATE_MAX);
+    // size of linksQ does not include the flexible array member!
+    acm->links = malloc((sizeof(acm->links) + _Generic(acm->links, struct alphabet_queue *: real_alphabet_size,
+                                                                  default: 0
+                                                   )) * STATE_MAX);
     checkNULL(acm->links, "malloc");
     /* Here we assume that NULL is 0 */
-    memset(acm->links, 0, sizeof(linksQ) * STATE_MAX);
+    memset(acm->links, 0, sizeof(acm->links) * STATE_MAX);
 #else
-    acm->links = malloc(sizeof(linksQ *) * STATE_MAX);
+    acm->links = malloc(sizeof(acm->links) * STATE_MAX);
     checkNULL(acm->links, "malloc");
     /* Here we assume that NULL is 0 */
-    memset(acm->links, 0, sizeof(linksQ *) * STATE_MAX);
+    memset(acm->links, 0, sizeof(acm->links) * STATE_MAX);
 #endif
     
     memset(acm->f, 0, sizeof(acm->f));

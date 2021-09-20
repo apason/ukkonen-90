@@ -29,7 +29,7 @@ extern struct queue * newQueue (void);
 struct alphabet_queue{
     STATE first;
     STATE last;
-    STATE data[ALPHABET_MAX];
+    STATE data[];
 };
 
 extern int   qAEmpty(const struct alphabet_queue * const q         );

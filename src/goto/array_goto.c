@@ -9,29 +9,33 @@
 
 STATE gotoGet(goto_function g, STATE state, ALPHABET key){
 
-    if(key == 0)
+    if(key == 0){
         printf("get request for key 0\n");
+        fflush(NULL);
+    }
 
     return (*g[state])[key -1];
 }
 
 void gotoSet(goto_function g, STATE state, ALPHABET key, STATE value){
 
-    if(key == 0)
+    if(key == 0){
         printf("set request for key 0\n");
-    
+        fflush(NULL);
+    }
+
     (*g[state])[key -1] = value;
 }
 
 void gotoInit(goto_function g, size_t len){
-    g[len] = malloc(ALPHABET_BYTES);
+    g[len] = malloc(sizeof(STATE) * real_alphabet_size);
 
     if(g[len] == NULL){
         perror("malloc");
         exit(EXIT_FAILURE);
     }
     
-    memset(g[len], 0, ALPHABET_BYTES);
+    memset(g[len], 0, sizeof(STATE) * real_alphabet_size);
 }
 
 // not changed after alphabet_max

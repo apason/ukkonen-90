@@ -57,11 +57,12 @@
   #define ALPHABET_MAX ((size_t) (1 << sizeof(ALPHABET) * 8) -2)
 #else
   #define ALPHABET_MAX ((size_t) MAX_ALPHABET)
-  #define OPTIMIZE_ALPHABET
 #endif
 
 /* Size of the alphabet table (child function of the implicit trie in bytes */
 #define ALPHABET_BYTES (sizeof(STATE) * ALPHABET_MAX)
+
+extern size_t real_alphabet_size;
 
 #include "goto.h"
 

@@ -176,13 +176,13 @@ int qAPut(struct alphabet_queue * const q, STATE s){
  */
 struct alphabet_queue * newAlphabetQueue(void){
 
-    struct alphabet_queue * q = malloc(sizeof(*q));
+    struct alphabet_queue * q = malloc(sizeof(*q) + sizeof(*q->data) * real_alphabet_size);
 
     checkNULL(q, "malloc");
 
     q->first = 0;
     q->last = 0;
-    memset(q->data, 0, sizeof(q->data));
+    memset(q->data, 0, sizeof(*q->data) * real_alphabet_size);
 
     return q;
 }

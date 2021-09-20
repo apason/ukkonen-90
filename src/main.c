@@ -6,6 +6,7 @@
 #include "input.h"   // readInput(), struct key_words
 #include "usage.h"   // startTimer(), endTimer()
 #include "options.h" // struct options, enum input_type
+#include "io.h"      // unmap(), optimizeAlphabet()
 
 /* Redundant functions. Only used in development / debugging phase */
 /* --------------------------------------------------------------- */
@@ -23,12 +24,6 @@ static void printKeyWords    (const struct key_words  * keys);
 /* ------------------------------------------------------------------ */
 
 
-// OMAAN HEADERIIN!!! 
-extern void optimizeAlphabet(const struct key_words * keys);
-extern void unmap(const struct key_words * keys);
-
-
-
 #ifdef INFO
 static void printDefs(void);
 #endif
@@ -42,10 +37,11 @@ size_t cs_compression = 0;
 #endif
 
 #ifdef INFO
-
 size_t original_input_length = 0;
 size_t reduced_input_length = 0;
 #endif
+
+size_t real_alphabet_size;
 
 /*
  * Main function.
@@ -83,15 +79,18 @@ int main (int argc, char *argv[]){
         return EXIT_FAILURE;
     }
 
-    /* Optimize the alphabet */
-#ifdef OPTIMIZE_ALPHABET
+    /* Optimize the alphabet if ARRAY_GOTO is defined. Otherwise it does not matter. */
+#ifdef ARRAY_GOTO
 #ifdef INFO
     startTimer("  Alphabet optimization");
 #endif
-    optimizeAlphabet(keys);
+    real_alphabet_size=optimizeAlphabet(keys);
 #ifdef INFO
+    printf("Optimized alphabet size:\t%ld\n", real_alphabet_size);
     endTimer("  Alphabet optimization");
 #endif
+#else
+    real_alphabet_size=ALPHABET_MAX;
 #endif
     
     freeOptions(opts);
@@ -123,7 +122,7 @@ int main (int argc, char *argv[]){
     endTimer("  Path calculation");
 #endif
 
-#ifdef OPTIMIZE_ALPHABET
+#ifdef ARRAY_GOTO
     unmap(keys);
 #endif
     

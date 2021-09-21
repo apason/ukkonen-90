@@ -94,7 +94,7 @@ $(TEST1_INIT): | $(TEST1_DIR)
 
 
 $(TEST1_BIN): $(TEST1_OBJ) | $(TARGET)
-	$(CC) -o $(TEST1_BIN) $(TEST1_OBJ)
+	$(CC) -lm -o $(TEST1_BIN) $(TEST1_OBJ)
 
 $(TEST1_DIR):
 	mkdir $@
@@ -116,7 +116,7 @@ $(TEST2_INIT): | $(TEST2_DIR)
 	touch $@
 
 $(TEST2_BIN): $(TEST2_OBJ) | $(TARGET)
-	$(CC) -o $(TEST2_BIN) $(TEST2_OBJ)
+	$(CC) -lm -o $(TEST2_BIN) $(TEST2_OBJ)
 
 $(TEST2_DIR):
 	mkdir $@
@@ -130,7 +130,7 @@ test3: $(TEST3_INIT) $(TEST3_BIN) $(TEST1_BIN)
 	./test3.sh $(TEST1_BIN) $(TEST3_BIN) $(TEST3_DIR)
 
 $(TEST3_BIN): $(TEST3_OBJ) | $(TARGET)
-	$(CC) -o $(TEST3_BIN) $(TEST3_OBJ)
+	$(CC) -lm -o $(TEST3_BIN) $(TEST3_OBJ)
 
 ## PHONY targets to clean up the test folder ##
 .PHONY: clean clobber delete_tests

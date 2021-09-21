@@ -28,7 +28,7 @@ CFLAGS=   $(DEFS) $(INCLUDE) -c -funsigned-char -Wno-char-subscripts -Wall -Werr
 all:	$(TARGET)scs
 
 $(TARGET)scs:	$(OBJS) | $(TARGET)
-	$(CC) -flto $(OBJS) -o $(TARGET)scs
+	$(CC) -lm -flto $(OBJS) -o $(TARGET)scs
 
 $(TARGET):
 	mkdir $(TARGET)

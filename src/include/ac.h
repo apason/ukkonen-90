@@ -9,6 +9,7 @@
 /* Compression value is used from test set 2. This variable is defined in main.c */
 #if defined(TEST2) || defined(INFO)
 extern size_t cs_compression;
+extern size_t estimated_states;
 #endif /* TEST2 || INFO */
 
 /*
@@ -27,18 +28,14 @@ struct ac_machine {
     uint8_t  *d;
 #endif
     STATE *b;
-    STATE f[STATE_MAX];
+    STATE *f;
     STATE *first;
     STATE *last;
     uint8_t *forbidden;
-    struct queue *supporters_set[STATE_MAX];
-    struct queue *P[STATE_MAX];
-#ifdef LINKSQ_ARRAY
-    linksQ *links;
-#else
+    struct queue **supporters_set;
+    struct queue **P;
     linksQ **links;
-#endif
-    STATE leaf[STATE_MAX];
+    uint8_t *leaf;
     size_t len;
 };
 

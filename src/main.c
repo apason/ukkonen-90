@@ -79,8 +79,8 @@ int main (int argc, char *argv[]){
         return EXIT_FAILURE;
     }
 
-    /* Optimize the alphabet if ARRAY_GOTO is defined. Otherwise it does not matter. */
-#ifdef ARRAY_GOTO
+    /* Optimize the alphabet to get real_alphabet_size. This value is used      */
+    /* in estimateStates() so it must be calculated even though rb_tree is used */
 #ifdef INFO
     startTimer("  Alphabet optimization");
 #endif
@@ -88,9 +88,6 @@ int main (int argc, char *argv[]){
 #ifdef INFO
     printf("Optimized alphabet size:\t%ld\n", real_alphabet_size);
     endTimer("  Alphabet optimization");
-#endif
-#else
-    real_alphabet_size=ALPHABET_MAX;
 #endif
     
     freeOptions(opts);
@@ -122,9 +119,7 @@ int main (int argc, char *argv[]){
     endTimer("  Path calculation");
 #endif
 
-#ifdef ARRAY_GOTO
     unmap(keys);
-#endif
     
 #ifdef INFO
     startTimer("  Overlap graph calculation");
@@ -152,7 +147,10 @@ int main (int argc, char *argv[]){
 #endif
 
 #ifdef INFO
-    printf("\nLength of the input (reduced set):\t%ld\n", reduced_input_length);
+    printf("\nEstimated number of states:\t%ld\n", estimated_states);
+    printf("Real number of states:\t%ld\n", acm->len);
+    printf("Number of excess states:\t%ld  (%.2f%%)\n", estimated_states - acm->len, (double)((double)estimated_states - acm->len)*100 / (double)acm->len);
+    printf("Length of the input (reduced set):\t%ld\n", reduced_input_length);
     printf("Length of the input (original input):\t%ld\n", original_input_length);
     printf("Length of the common superstring:\t%ld\n", reduced_input_length - cs_compression);
     printf("Length of the superstring compression:\t");

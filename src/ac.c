@@ -1,6 +1,7 @@
 #include <stdio.h>  // [f]printf(), NULL
 #include <stdlib.h> // [m,re]alloc()
-#include <string.h> // memset()
+#include <string.h> // memset(), strlen()
+#include <tgmath.h>
 
 #include "init.h"   // STATE, ALPHABET, ALPHABET_MAX
 #include "ac.h"     // struct ac_machine, struct edge
@@ -19,6 +20,11 @@ static void createState        (struct ac_machine * const acm);
 static struct ac_machine * initMachine(const struct key_words * const keys);
 
 static void initAuxiliaryFunctions(struct ac_machine * const acm, size_t k);
+
+static size_t estimateStates(long double m, long double l, long double s);
+
+// number of states estimated for random input
+size_t estimated_states;
 
 /* Goto function construction as described in Aho & Corasic 1975: Algorithm 2 */
 static void gotoFunction(struct ac_machine * const acm, const struct key_words * const keys){
@@ -53,16 +59,11 @@ static void handleKey(struct ac_machine * const acm, char *key){
 
         gotoSet(acm->g, state, key[p], acm->len);
 
-#ifndef LINKSQ_ARRAY
         if(acm->links[state] == NULL)
             acm->links[state] = linksNewQueue();
-#endif
 
-#ifdef LINKSQ_ARRAY        
-        linksQPut(&acm->links[state], acm->len);
-#else
         linksQPut(acm->links[state], acm->len);
-#endif
+
         state = acm->len;
     }
     acm->leaf[state] = 1;
@@ -150,13 +151,9 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
 
         r = qGet(q);
 
-#ifdef LINKSQ_ARRAY
-        while(!linksQEmpty(&acm->links[r])){
-            STATE s = linksQGet(&acm->links[r]);
-#else
         while(!linksQEmpty(acm->links[r])){
             STATE s = linksQGet(acm->links[r]);
-#endif
+
             qPut(q, s);
             acm->d[s] = acm->d[r] +1;
             acm->b[s] = acm->B;
@@ -169,21 +166,10 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
             /* Filter out other proper substrings */
             acm->F[acm->E[acm->f[s]]] = 1;
         }
-        
-#ifndef LINKSQ_ARRAY
-        // The queue SHOULD be empty which means we can just free the header
-        // free(acm->links[r]);
-        
-        // Do we want to free these empty queues at all, its is very slow..
-#endif
-        
-                                 
+        // free(acm->links[r]); // takes a very long time
     }
-#ifdef LINKSQ_ARRAY
-        free(acm->links);
-#else
-        // Do we want to free these empty queues (just queue headers) at all?
-#endif
+    
+    free(acm->links); // leaks memory if every individually allocated linksQ object has not be freed
 }
 
 /* Path calculation algorithm as described in Ukkonen 1990: Algorithm 2 */
@@ -191,7 +177,7 @@ struct edge * createPath(struct ac_machine * acm, const struct key_words * const
 
     struct edge * list = malloc(sizeof(struct edge) * keys->len);
 
-    checkNULL(list, "malloc");
+    checkNULL(list, "malloc - createPath, list:");
 
     memset(list, 0, sizeof(struct edge) * keys->len);
 
@@ -342,80 +328,82 @@ static void printPath(const struct ac_machine * const acm, const struct key_word
 /* Creates and initializes a new state to the AC machine acm */
 static void createState(struct ac_machine * const acm){
 
-    if(acm->len == STATE_MAX){
-        fprintf(stderr, "ERROR: Too many states. Try to increase MAX_STATE and recompile\n");
+    if(acm->len == estimated_states){
+        fprintf(stderr, "ERROR: Too many states :(\n");
         exit(EXIT_FAILURE);
     }
 
-    acm->g = realloc(acm->g, sizeof(*acm->g) * (++acm->len +1));
-    checkNULL(acm->g, "realloc");
-
+    acm->len++;
+    
     gotoInit(acm->g, acm->len);
 }
 
+#define xstr(x) str(x)
+#define str(x) #x
 /* Allocates sizeof(TYPE) * LEN memory and stores the pointer to acm->X    */
 /* The allocated memory region is filled with zeros.                       */
 /* Note that this macro assumes that variable acm is available when called */
-#define ALLOCATE(X, TYPE, LEN) do{             \
-        acm->X = malloc(sizeof(TYPE) * LEN);   \
-        checkNULL(acm->X, "malloc");           \
-        memset(acm->X, 0, sizeof(TYPE) * LEN); \
+#define ALLOCATE(X, LEN) do{                      \
+        acm->X = malloc(sizeof(*acm->X) * LEN);   \
+        checkNULL(acm->X, "malloc - ALLOCATE");   \
+        memset(acm->X, 0, sizeof(*acm->X) * LEN); \
     } while (0);
  
 static void initAuxiliaryFunctions(struct ac_machine * const acm, size_t k){
 
-    ALLOCATE(F, STATE, k);
+    ALLOCATE(F, k);
 
     acm->B = 0;
 
-    ALLOCATE(E, STATE, MAX_STATE);
-    ALLOCATE(d, STATE, MAX_STATE);
-    ALLOCATE(b, STATE, MAX_STATE);
-    ALLOCATE(first, STATE, k);
-    ALLOCATE(last, STATE, k);
-    ALLOCATE(forbidden, uint8_t, k);
+    ALLOCATE(E, acm->len);
+    ALLOCATE(d, acm->len);
+    ALLOCATE(b, acm->len);
+    ALLOCATE(first, k);
+    ALLOCATE(last, k);
+    ALLOCATE(forbidden, k);
+    ALLOCATE(supporters_set, acm->len);
+    ALLOCATE(P, acm->len);
 
     
     /* Many calls to malloc due to queue initializations */
-    for(int i = 0; i < STATE_MAX; i++){
+    for(int i = 0; i <= acm->len; i++){
         acm->supporters_set[i] = newQueue();
         acm->P[i] = newQueue();
     }
 
 }
 /* Initializes (allocates memory) and sets the default values  of the ac machine */
+/* Estimate the number of states and initialize memory for that estimate number. */
 static struct ac_machine * initMachine(const struct key_words * const keys){
     
     struct ac_machine * acm = malloc(sizeof(*acm));
-    checkNULL(acm, "malloc");
+    checkNULL(acm, "malloc - initMachine, acm");
 
-    /* If we had better approximation of the maximum number of states */
-    /* we would allocate all needed memory here instead of setting g */
-    /* to null and reallocating iteratively in createState() */
-    acm->g = NULL;
+    estimated_states = estimateStates(keys->len -1, strlen(keys->R[1]), real_alphabet_size);
 
-    // Tarvitaanko tätä ifdefiä? Onko sama asia?
-#ifdef LINKSQ_ARRAY
-    // size of linksQ does not include the flexible array member!
-    acm->links = malloc((sizeof(acm->links) + _Generic(acm->links, struct alphabet_queue *: real_alphabet_size,
-                                                                  default: 0
-                                                   )) * STATE_MAX);
-    checkNULL(acm->links, "malloc");
-    /* Here we assume that NULL is 0 */
-    memset(acm->links, 0, sizeof(acm->links) * STATE_MAX);
-#else
-    acm->links = malloc(sizeof(acm->links) * STATE_MAX);
-    checkNULL(acm->links, "malloc");
-    /* Here we assume that NULL is 0 */
-    memset(acm->links, 0, sizeof(acm->links) * STATE_MAX);
-#endif
-    
-    memset(acm->f, 0, sizeof(acm->f));
-
-    memset(acm->leaf, 0, sizeof(acm->leaf));
+    ALLOCATE(g, estimated_states);
+    ALLOCATE(f, estimated_states);
+    ALLOCATE(links, estimated_states);
+    ALLOCATE(leaf, estimated_states);
 
     acm->len = 0;
 
     return acm;
 }
  
+size_t estimateStates(long double m, long double l, long double s){
+
+    long double pr = 0;
+    long double add = 0;
+    for(int i = 0; i <= l; i++){
+        add = powl(s, i) * (1- powl((powl(s, i) -1)/powl(s, i), m));
+        if(add == 0)
+            add = m;
+        if(isnan(add))
+           add = m;
+        pr = pr + add;
+    }
+
+    // For very short inputs the estimated size might be smaller so we add +500 to it.
+    return (size_t) pr +500;
+}

@@ -14,7 +14,6 @@
 #ifdef DEBUG
 
 static void printDebugInfo   (const struct ac_machine * const acm,  const struct key_words * const keys);
-static void printContents    (const        STATE      * const x,    const char * fname);
 //static void printGotoFunction(const struct ac_machine * const acm);
 static void printKeyWords    (const struct key_words  * keys);
 
@@ -175,19 +174,6 @@ int main (int argc, char *argv[]){
 
 #ifdef DEBUG
 
-/* 
- * This function prints the contents of the AC function x of type STATE x[STATE_MAX]
- * Applicable functions: E, d, b, f, first, last, forbidden, leaf
- */
-static void printContents(const STATE * const x, const char *fname){
-
-    for(int i = 0; i < STATE_MAX; i++)
-        if(x[i] != 0)
-            printf("State %5d  has a %s value of %5d \n", i, fname, x[i]);
-
-    printf("\n");
-}
-
 static void printKeyWords(const struct key_words * keys){
 
     for(int i = 0; i < keys->len; i++)
@@ -259,7 +245,6 @@ static void printDefs(void){
 #endif
     printf("MAX_LINE: %s\n", xstr(MAX_LINE));
     printf("STATE: %s\n", xstr(STATE));
-    printf("STATE_MAX: %s == %ld\n", xstr(STATE_MAX), STATE_MAX);
     printf("ALPHABET: %s\n", xstr(ALPHABET));
     printf("ALPHABET_MAX: %s == %ld\n", xstr(ALPHABET_MAX), ALPHABET_MAX);
     printf("\n\n");

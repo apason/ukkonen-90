@@ -1,7 +1,7 @@
 #ifndef AC_H
 #define AC_H
 
-#include "init.h"    // STATE, STATE_MAX, ALPHABET
+#include "init.h"    // STATE, ALPHABET
 #include "goto.h"    // goto_function
 #include "fifo.h"    // struct queue
 #include "input.h"   // struct key_words

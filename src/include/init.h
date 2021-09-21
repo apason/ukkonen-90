@@ -27,7 +27,7 @@
 
 /* Default value for MAX_STATE is 16bits */
 #ifndef MAX_STATE
-    #define MAX_STATE UINT16_MAX -1
+    #define MAX_STATE UINT32_MAX -1
 #endif
 
 /*
@@ -47,10 +47,6 @@
 #else
   #define STATE uint8_t
 #endif
-
-/* This is the macro actually used in the code */
-#define STATE_MAX (size_t)MAX_STATE
-
 
 /* Maximum value of the alphabet index. Executed in loop and might be slow!" */
 #ifndef MAX_ALPHABET

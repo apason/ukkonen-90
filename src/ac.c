@@ -133,9 +133,6 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
                 /* Filter out proper prefixes */
                 if(!acm->leaf[s]){
                     acm->F[i] = 1;
-#ifdef DEBUG
-                    printf("State %4d (\"%s\") represents an internal node. Setting F(%d) to 1.\n", s, keys->R[acm->F[acm->E[s]]], s);
-#endif
                 }
             }
         }
@@ -159,10 +156,6 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
             acm->b[s] = acm->B;
             acm->B = s;
 
-#ifdef DEBUG
-            if(acm->E[acm->f[s]] != 0)
-                printf("Proper substring \"%s\" detected. Removing corresponding keyword %d\n", keys->R[acm->E[acm->f[s]]] , acm->E[acm->f[s]]);
-#endif
             /* Filter out other proper substrings */
             acm->F[acm->E[acm->f[s]]] = 1;
         }
@@ -207,9 +200,6 @@ struct edge * createPath(struct ac_machine * acm, const struct key_words * const
                     continue;
 
                 if(qEmpty(acm->P[s])){
-#ifdef DEBUG
-                    printf("Queue was empty, which means |P(s)| < |L(s)| for some state s. Continuing..\n");
-#endif                    
                     continue;
                 }
 
@@ -226,9 +216,6 @@ struct edge * createPath(struct ac_machine * acm, const struct key_words * const
                     }
                 }
                 
-#ifdef DEBUG
-                printf("merge: %s - %s\t depth: %d\n", keys->R[i], keys->R[j], acm->d[s]);
-#endif
 
 #if defined(TEST2) || defined(INFO)
                 cs_compression += acm->d[s];

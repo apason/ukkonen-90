@@ -8,20 +8,6 @@
 #include "options.h" // struct options, enum input_type
 #include "io.h"      // unmap(), optimizeAlphabet()
 
-/* Redundant functions. Only used in development / debugging phase */
-/* --------------------------------------------------------------- */
-
-#ifdef DEBUG
-
-static void printDebugInfo   (const struct ac_machine * const acm,  const struct key_words * const keys);
-//static void printGotoFunction(const struct ac_machine * const acm);
-static void printKeyWords    (const struct key_words  * keys);
-
-#endif
-
-/* Redundant functions and variables. Only used for extra information */
-/* ------------------------------------------------------------------ */
-
 
 #ifdef INFO
 static void printDefs(void);
@@ -91,10 +77,6 @@ int main (int argc, char *argv[]){
     
     freeOptions(opts);
 
-#ifdef DEBUG
-    printKeyWords(keys);
-#endif
-
 #ifdef SCS    
     
 #ifdef INFO
@@ -141,10 +123,6 @@ int main (int argc, char *argv[]){
     printUsageMessages();
 #endif    
 
-#ifdef DEBUG
-    printDebugInfo(acm, keys);
-#endif
-
 #ifdef INFO
     printf("\nEstimated number of states:\t%ld\n", estimated_states);
     printf("Real number of states:\t%ld\n", acm->len);
@@ -169,55 +147,6 @@ int main (int argc, char *argv[]){
 }
 
 
-/* Redundant functions. Only used in development / debugging phase */
-/* --------------------------------------------------------------- */
-
-#ifdef DEBUG
-
-static void printKeyWords(const struct key_words * keys){
-
-    for(int i = 0; i < keys->len; i++)
-        printf("Key %10d:\t %s\n", i, keys->R[i]);
-
-    printf("\n");
-}
-
-/* Incomplete function. Should print more info (functions E, first, last, forbidden as well) */
-static void printDebugInfo(const struct ac_machine * const acm, const struct key_words * const keys){
-    for(int i = 1; i <= acm->len; i++)
-        printf("state %4d is %10s\n", i, acm->leaf[i] ? "leaf" : "internal");
-                            
-    printGotoFunction(acm->g, acm->len);
-
-    printContents(acm->f, "f");
-
-    printContents(acm->d, "d");
-    printContents(acm->b, "b");
-
-    printf("B: %d\n\n", acm->B);
-
-    printf("F:\n");
-    for(int i = 1; i < keys->len; i++){
-        printf("Keyword %5d  has a %s value of %5d \n", i, "F", acm->F[i]);
-    }
-    
-    printf("\nE:\n");
-    for(int i = 1; i <= acm->len; i++){
-        printf("State %5d  has a %s value of %5d \n", i, "E", acm->E[i]);
-    }
-
-    printf("\nPrinting supporter lists L(s) for every state s:\n");
-
-    for(int i = 1; i <= acm->len; i++){
-        printf("State %5d:", i);
-        while(!qEmpty(acm->supporters_set[i]))
-            printf("%3d\t", qGet(acm->supporters_set[i]));
-        printf("\n");
-    }
-}
-
-#endif
-
 
 /* Redundant functions and variables. Only used for extra information */
 /* ------------------------------------------------------------------ */
@@ -233,12 +162,6 @@ static void printDefs(void){
     printf("****************************************\n");
     printf("INFO: %s\n",
 #ifdef INFO
-           "defined");
-#else
-           "not defined");
-#endif
-    printf("DEBUG: %s\n",
-#ifdef DEBUG
            "defined");
 #else
            "not defined");

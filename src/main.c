@@ -113,6 +113,7 @@ int main (int argc, char *argv[]){
 #ifdef INFO    
     startTimer("  Path calculation");
 #endif
+    initAdditionalfunctions((struct ac_machine * const)acm, keys->len);
     struct edge *paths = createPath((struct ac_machine *) acm, keys);
 #ifdef INFO
     endTimer("  Path calculation");

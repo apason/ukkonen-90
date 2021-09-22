@@ -42,7 +42,11 @@ struct ac_machine {
 /* Structure that describes a half of the edge. */
 struct edge {
     STATE next;  // The other side of the edge
-    int d;       // Depth of the overlap
+#ifdef LONG_KEYS
+    uint16_t d;       // Depth of the overlap
+#else
+    uint8_t d;
+#endif
 };
 
 /* Declarations for functions that are defined in ac.c that are visible to other compilation units */
@@ -53,6 +57,8 @@ extern void printCommonSuperstring(const struct ac_machine * const acm, const st
 extern STATE gotoGet (goto_function g, STATE  state, ALPHABET key);
 extern  void gotoSet (goto_function g, STATE  state, ALPHABET key, STATE value);
 extern  void gotoInit(goto_function g, size_t len);
+
+extern void initAdditionalfunctions(struct ac_machine * const acm, size_t k);
 
 extern  void printGotoFunction(goto_function g, size_t len);
 #endif /* AC_H */

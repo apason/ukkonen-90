@@ -169,7 +169,9 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
         // free(acm->links[r]); // takes a very long time
     }
     
-    free(acm->links); // leaks memory if every individually allocated linksQ object has not be freed
+    //free(acm->links); // leaks memory if every individually allocated linksQ object has not be freed
+    //free(acm->E);
+    //free(acm->leaf);
 }
 
 /* Path calculation algorithm as described in Ukkonen 1990: Algorithm 2 */
@@ -191,6 +193,8 @@ struct edge * createPath(struct ac_machine * acm, const struct key_words * const
         else
             acm->forbidden[j] = 1;
     }
+
+    //free(acm->F);
 
     STATE s = acm->b[acm->B];
 
@@ -248,6 +252,11 @@ struct edge * createPath(struct ac_machine * acm, const struct key_words * const
         }
         s = acm->b[s];
     }
+    //free(acm->d);
+    //free(acm->b);
+    //free(acm->f);
+    //free(acm->first);
+    //free(acm->last);
     return list;
 }
 
@@ -308,6 +317,8 @@ void printCommonSuperstring(const struct ac_machine * const acm, const struct ke
         printPath(acm, keys, i, paths, 1);
     }
 
+    //free(acm->forbidden);
+    
 #ifdef INFO
     printf("\n");
 #endif
@@ -348,7 +359,13 @@ static void createState(struct ac_machine * const acm){
         checkNULL(acm->X, "malloc - ALLOCATE");   \
         memset(acm->X, 0, sizeof(*acm->X) * LEN); \
     } while (0);
- 
+
+void initAdditionalfunctions(struct ac_machine * const acm, size_t k){
+    ALLOCATE(first, k);
+    ALLOCATE(last, k);
+    ALLOCATE(forbidden, k);
+}
+
 static void initAuxiliaryFunctions(struct ac_machine * const acm, size_t k){
 
     ALLOCATE(F, k);
@@ -358,9 +375,6 @@ static void initAuxiliaryFunctions(struct ac_machine * const acm, size_t k){
     ALLOCATE(E, acm->len);
     ALLOCATE(d, acm->len);
     ALLOCATE(b, acm->len);
-    ALLOCATE(first, k);
-    ALLOCATE(last, k);
-    ALLOCATE(forbidden, k);
     ALLOCATE(supporters_set, acm->len);
     ALLOCATE(P, acm->len);
 

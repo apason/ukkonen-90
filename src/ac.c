@@ -161,10 +161,17 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
         }
         // free(acm->links[r]); // takes a very long time
     }
+
+    // g still leaks memory if the whole tree is not deallocated (when rb alternative is used)
+    for(int i = 0; i <= estimated_states; i++){
+        free(acm->links[i]);
+        free(acm->g[i]);
+    }
     
-    //free(acm->links); // leaks memory if every individually allocated linksQ object has not be freed
-    //free(acm->E);
-    //free(acm->leaf);
+    free(acm->links); // leaks memory if every individually allocated linksQ object has not be freed
+    free(acm->g); // leaks memory if every individually allocated alphabet table is not freed.
+    free(acm->E);
+    free(acm->leaf);
 }
 
 /* Path calculation algorithm as described in Ukkonen 1990: Algorithm 2 */
@@ -187,7 +194,7 @@ struct edge * createPath(struct ac_machine * acm, const struct key_words * const
             acm->forbidden[j] = 1;
     }
 
-    //free(acm->F);
+    free(acm->F);
 
     STATE s = acm->b[acm->B];
 
@@ -239,11 +246,12 @@ struct edge * createPath(struct ac_machine * acm, const struct key_words * const
         }
         s = acm->b[s];
     }
-    //free(acm->d);
-    //free(acm->b);
-    //free(acm->f);
-    //free(acm->first);
-    //free(acm->last);
+    free(acm->d);
+    free(acm->b);
+    free(acm->f);
+    free(acm->supporters_set); // leaks memory
+    free(acm->first);
+    free(acm->last);
     return list;
 }
 
@@ -304,7 +312,7 @@ void printCommonSuperstring(const struct ac_machine * const acm, const struct ke
         printPath(acm, keys, i, paths, 1);
     }
 
-    //free(acm->forbidden);
+    free(acm->forbidden);
     
 #ifdef INFO
     printf("\n");
@@ -342,15 +350,20 @@ static void createState(struct ac_machine * const acm){
 /* The allocated memory region is filled with zeros.                       */
 /* Note that this macro assumes that variable acm is available when called */
 #define ALLOCATE(X, LEN) do{                      \
-        acm->X = malloc(sizeof(*acm->X) * LEN);   \
+        acm->X = malloc(sizeof(*acm->X) * (LEN)); \
         checkNULL(acm->X, "malloc - ALLOCATE");   \
-        memset(acm->X, 0, sizeof(*acm->X) * LEN); \
+        memset(acm->X, 0, sizeof(*acm->X) * (LEN));     \
     } while (0);
 
 void initAdditionalfunctions(struct ac_machine * const acm, size_t k){
     ALLOCATE(first, k);
     ALLOCATE(last, k);
     ALLOCATE(forbidden, k);
+    ALLOCATE(P, acm->len +1);    
+    
+    /* Many calls to malloc due to queue initializations */
+    for(int i = 0; i <= acm->len; i++)
+        acm->P[i] = newQueue();
 }
 
 static void initAuxiliaryFunctions(struct ac_machine * const acm, size_t k){
@@ -359,18 +372,16 @@ static void initAuxiliaryFunctions(struct ac_machine * const acm, size_t k){
 
     acm->B = 0;
 
-    ALLOCATE(E, acm->len);
-    ALLOCATE(d, acm->len);
-    ALLOCATE(b, acm->len);
-    ALLOCATE(supporters_set, acm->len);
-    ALLOCATE(P, acm->len);
+    ALLOCATE(E, acm->len +1);
+    ALLOCATE(d, acm->len +1);
+    ALLOCATE(b, acm->len +1);
+    ALLOCATE(supporters_set, acm->len +1);
+
 
     
     /* Many calls to malloc due to queue initializations */
-    for(int i = 0; i <= acm->len; i++){
+    for(int i = 0; i <= acm->len; i++)
         acm->supporters_set[i] = newQueue();
-        acm->P[i] = newQueue();
-    }
 
 }
 /* Initializes (allocates memory) and sets the default values  of the ac machine */

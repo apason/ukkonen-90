@@ -10,13 +10,13 @@ datadir="../data/dna/"
 echo "Measuring runtime for the program"
 
 gotos=("ARRAY" "RB_TREE")
-alphabets=("-DDUMMY" "-DMAX_ALPHABET=4")
+links=("-DDUMMY" "-DOPTIMIZE_LINKS")
 
 for goto in ${gotos[@]} ; do
     
-    for alphabet in ${alphabets[@]} ; do
+    for link in ${links[@]} ; do
 
-        if [ "$alphabet" = "-DDUMMY" ]
+        if [ "$link" = "-DDUMMY" ]
         then
             optimized="non-optimized"
         else
@@ -26,7 +26,7 @@ for goto in ${gotos[@]} ; do
            
         result_dir="time-$goto-$optimized-results/"
 
-        echo "Running measures for $goto goto with $optimized alphabet"
+        echo "Running measures for $goto goto with $optimized link"
         
         mkdir "$result_dir"
         
@@ -35,9 +35,7 @@ for goto in ${gotos[@]} ; do
             rm -f usedmem
             (cd .. ; make clobber)
 
-            MAX_STATES="$(bc <<< "$(wc -c "$datadir$file" | cut -d' ' -f1) - $(wc -l "$datadir$file" | cut -d' ' -f1)")"
-
-            (cd .. ; make DEFS="-D$goto""_GOTO -DMAX_STATE=$MAX_STATES -DSCS $alphabet")
+            (cd .. ; make DEFS="-D$goto""_GOTO -DSCS $link")
 
             echo -n "$file:" >> "$result_dir"results
 

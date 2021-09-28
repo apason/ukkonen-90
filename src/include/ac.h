@@ -32,7 +32,7 @@ struct ac_machine {
     STATE *first;
     STATE *last;
     uint8_t *forbidden;
-    struct queue **supporters_set;
+    struct data_set **supporters_set;
     struct queue **P;
     linksQ **links;
     uint8_t *leaf;

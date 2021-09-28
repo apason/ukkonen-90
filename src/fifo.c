@@ -186,3 +186,51 @@ struct alphabet_queue * newAlphabetQueue(void){
 
     return q;
 }
+
+STATE sGet(struct data_set * const s){
+
+    if(s->iterator_r == s->iterator_w)
+        return 0;
+
+    return s->data[s->iterator_r++];
+}
+
+int sEmpty(const struct data_set * const s){
+
+    if(s == NULL)
+        return 1;
+
+    if(s->iterator_r == s->iterator_w)
+        return 1;
+
+    return 0;
+}
+
+
+int sPut(struct data_set ** s, STATE state){
+
+    if((*s)->iterator_w == (*s)->capacity){
+        *s = realloc(*s, sizeof(**s) + sizeof(*(*s)->data) * ((*s)->capacity +1));
+        checkNULL(*s, "realloc");
+        (*s)->capacity++;
+    }
+
+    (*s)->data[(*s)->iterator_w++] = state;
+
+    return 0;
+}
+
+struct data_set * newDataSet(size_t capacity){
+
+    struct data_set * s = malloc(sizeof(*s) + sizeof(*s->data) * capacity);
+    checkNULL(s, "malloc");
+
+    //printf("initialized capacity: %ld\n", capacity);
+    
+    s->iterator_r = 0;
+    s->iterator_w = 0;
+    s->capacity = capacity;
+    memset(s->data, 0, sizeof(*s->data) * capacity);
+
+    return s;
+}

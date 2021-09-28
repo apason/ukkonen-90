@@ -49,4 +49,16 @@ extern int      (*linksQEmpty)(const linksQ * const);
 extern STATE    (*linksQGet)        (linksQ * const);
 extern linksQ * (*linksNewQueue)    (void);
 
+struct data_set{
+    STATE iterator_r;
+    STATE iterator_w;
+    STATE capacity;
+    STATE data[];
+};
+
+extern struct data_set * newDataSet(size_t capacity);
+extern int sPut(struct data_set ** s, STATE state);
+extern int sEmpty(const struct data_set * const s);
+extern STATE sGet(struct data_set * const s);
+
 #endif /* FIFO_H */

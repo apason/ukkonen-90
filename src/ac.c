@@ -19,12 +19,17 @@ static void createState        (struct ac_machine * const acm);
 
 static struct ac_machine * initMachine(const struct key_words * const keys);
 
-static void initAuxiliaryFunctions(struct ac_machine * const acm, size_t k);
+static void initAuxiliaryFunctions(struct ac_machine * const acm, const struct key_words * const keys);
 
 static size_t estimateStates(long double m, long double l, long double s);
+static void estimateLeaves(size_t sigma, size_t m, size_t len);
+
 
 // number of states estimated for random input
 size_t estimated_states;
+
+// estimated_leaves[depth] is the average number of leaves for that depth.
+static STATE *estimated_leaves;
 
 /* Goto function construction as described in Aho & Corasic 1975: Algorithm 2 */
 static void gotoFunction(struct ac_machine * const acm, const struct key_words * const keys){
@@ -113,31 +118,6 @@ static void failureFunction(struct ac_machine * const acm){
 static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_words * const keys){
     STATE s;
     
-    for(int i = 1; i < keys->len; i++){
-
-        int k = strlen(keys->R[i]);
-        ALPHABET *x = keys->R[i];
-        s = 1;
-
-        for(int j = 0; j < k; j++){
-
-            s = gotoGet(acm->g, s, x[j]);
-
-            qPut(acm->supporters_set[s], i); 
-
-            if(j == k -1){
-
-                acm->F[i] = s;
-                acm->E[s] = i;
-
-                /* Filter out proper prefixes */
-                if(!acm->leaf[s]){
-                    acm->F[i] = 1;
-                }
-            }
-        }
-    }
-    
     struct queue * q = newQueue();
     qPut(q, 1);
     acm->d[1] = 0;
@@ -153,17 +133,48 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
 
             qPut(q, s);
             acm->d[s] = acm->d[r] +1;
+            
             acm->b[s] = acm->B;
             acm->B = s;
 
             /* Filter out other proper substrings */
             acm->F[acm->E[acm->f[s]]] = 1;
         }
-        // free(acm->links[r]); // takes a very long time
+        // free(acm->links[r]); // takes a very long time. Why it takes longer time here (individually) ?
     }
 
+    for(STATE s = 1; s <= acm->len; s++)
+        acm->supporters_set[s] = newDataSet(estimated_leaves[acm->d[s]]);
+
+    for(int i = 1; i < keys->len; i++){
+
+        int k = strlen(keys->R[i]);
+        ALPHABET *x = keys->R[i];
+        s = 1;
+
+        for(int j = 0; j < k; j++){
+
+            s = gotoGet(acm->g, s, x[j]);
+
+            sPut(&acm->supporters_set[s], i); 
+
+            if(j == k -1){
+
+                acm->F[i] = s;
+                acm->E[s] = i;
+
+                /* Filter out proper prefixes */
+                if(!acm->leaf[s]){
+                    acm->F[i] = 1;
+                }
+            }
+        }
+    }
+    
+
+
     // g still leaks memory if the whole tree is not deallocated (when rb alternative is used)
-    for(int i = 0; i <= estimated_states; i++){
+    for(int i = 0; i < estimated_states; i++){
         free(acm->links[i]);
         free(acm->g[i]);
     }
@@ -202,10 +213,12 @@ struct edge * createPath(struct ac_machine * acm, const struct key_words * const
 
     while(s != 1){
         if(!qEmpty(acm->P[s])){
+            
+            struct data_set * ds = acm->supporters_set[s];
 
-            for(struct queue_node *n = acm->supporters_set[s]->first; n != NULL; n = n->next){
+            while(!sEmpty(ds)){
                 int i;
-                int j = n->state;
+                int j = sGet(ds);
 
                 if(acm->forbidden[j] == 1)
                     continue;
@@ -249,6 +262,10 @@ struct edge * createPath(struct ac_machine * acm, const struct key_words * const
     free(acm->d);
     free(acm->b);
     free(acm->f);
+
+    for(size_t ind = 1; ind <= acm->len; ind++)
+        free(acm->supporters_set[ind]);
+    
     free(acm->supporters_set); // leaks memory
     free(acm->first);
     free(acm->last);
@@ -283,7 +300,7 @@ const struct ac_machine * const createMachine(const struct key_words * const key
     startTimer("    Calculation of auxiliary functions");
 #endif
 
-    initAuxiliaryFunctions(acm, keys->len);
+    initAuxiliaryFunctions(acm, keys);
     auxiliaryFunctions(acm, keys);
 
 #ifdef INFO    
@@ -366,9 +383,9 @@ void initAdditionalfunctions(struct ac_machine * const acm, size_t k){
         acm->P[i] = newQueue();
 }
 
-static void initAuxiliaryFunctions(struct ac_machine * const acm, size_t k){
+static void initAuxiliaryFunctions(struct ac_machine * const acm, const struct key_words * const keys){
 
-    ALLOCATE(F, k);
+    ALLOCATE(F, keys->len);
 
     acm->B = 0;
 
@@ -377,11 +394,7 @@ static void initAuxiliaryFunctions(struct ac_machine * const acm, size_t k){
     ALLOCATE(b, acm->len +1);
     ALLOCATE(supporters_set, acm->len +1);
 
-
-    
-    /* Many calls to malloc due to queue initializations */
-    for(int i = 0; i <= acm->len; i++)
-        acm->supporters_set[i] = newQueue();
+    estimateLeaves(real_alphabet_size, keys->len -1, strlen(keys->R[1]));
 
 }
 /* Initializes (allocates memory) and sets the default values  of the ac machine */
@@ -402,7 +415,25 @@ static struct ac_machine * initMachine(const struct key_words * const keys){
 
     return acm;
 }
- 
+
+/* Calculates the estimated number of leaves for subtrees of each depth */
+void estimateLeaves(size_t sigma, size_t m, size_t len){
+
+    //printf("sigma:%ld, m:%ld, len:%ld\n", sigma, m, len);
+
+    estimated_leaves = malloc(sizeof(*estimated_leaves) * (len +1));
+    checkNULL(estimated_leaves, "malloc - estimateLeaves");
+
+    long double result;
+    
+    for(int i = 0; i <= len; i++){
+        result = (long double)m/powl(sigma, i);
+        result++;
+        estimated_leaves[i] = result;
+        //printf("for depth: %d\tnumber of nodes: %LF (%d)\n", i, result, estimated_leaves[i]);
+    }
+}
+
 size_t estimateStates(long double m, long double l, long double s){
 
     long double pr = 0;

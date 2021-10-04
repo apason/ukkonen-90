@@ -154,6 +154,7 @@ static struct key_words * initKeys(void){
     /* This should never be read */
     keys->R[0] = NULL;
     keys->len = 1;
+    keys->meta = NULL;
 
     return keys;
 }

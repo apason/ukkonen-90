@@ -7,6 +7,7 @@ struct key_words * NewArray(int size){
     struct key_words *A = malloc(sizeof(*A));
     A->R = (char **) malloc(size * sizeof(char*));
     A->len = size;
+    A->meta = NULL;
 
     return A;
 }

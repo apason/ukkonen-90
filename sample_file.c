@@ -44,8 +44,9 @@ int main(int argc, char *argv[]){
  */
 const struct key_words * const readSamplesFromFile(const char * const file_name, size_t row_length, float cut){
 
-    srand(time(NULL));
-    //srand(9);
+    time_t t = time(NULL);
+    srand(t);
+    printf("the seed is: %ld\n", t);
     
     char line[row_length +1];
 
@@ -65,7 +66,7 @@ const struct key_words * const readSamplesFromFile(const char * const file_name,
     iterations = (file_size / row_length) * cut;
 
     while(keys->len != iterations){
-        
+
         size_t batch = iterations - keys->len;
 
         printf("Size of the next batch:\t%ld\n", batch);
@@ -85,7 +86,7 @@ const struct key_words * const readSamplesFromFile(const char * const file_name,
             /* Add the key to R.. */
             length = strlen(line);
 
-            keys->R[keys->len] = malloc(sizeof(*keys->R[keys->len]) * length +1);
+            keys->R[keys->len] = malloc(sizeof(*keys->R[keys->len]) * (length +1));
 
             strcpy(keys->R[keys->len], line);
 
@@ -115,7 +116,8 @@ static struct key_words * removeDuplicates(struct key_words *keys){
     /* Remove duplicates */
     struct key_words * uniqued_keys = NewArray(0);
     add(uniqued_keys, NULL);
-    
+
+    char flag = 0;
     char * prev = keys->R[0];
     for(int i = 1; i < keys->len; i++){
 
@@ -124,10 +126,16 @@ static struct key_words * removeDuplicates(struct key_words *keys){
             prev = keys->R[i];
             continue;
         }
+
         free(keys->R[i]);
+        // last round
+        if(i == keys->len -1){
+            add(uniqued_keys, prev);
+            flag = 1;
+        }
     }
 
-    if(strcmp(keys->R[keys->len-1], uniqued_keys->R[uniqued_keys->len-1]) != 0)
+    if(flag == 0 && strcmp(keys->R[keys->len-1], uniqued_keys->R[uniqued_keys->len-1]) != 0)
         add(uniqued_keys, keys->R[keys->len-1]);
 
     free(keys->R);

@@ -10,8 +10,10 @@
 #include "usage.h"  // startTimer(), endTimer()
 
 /* Static functions. Only used within this compilation unit. */
+#if !defined(SALMELA_COMPARISON)
 static void printPath    (const struct ac_machine * const acm, const struct key_words * const keys, int i, struct edge *paths, int first);
 static void auxiliaryFunctions (struct ac_machine * const acm, const struct key_words * const keys);
+#endif
 static void gotoFunction       (struct ac_machine * const acm, const struct key_words * const keys);
 static void handleKey          (struct ac_machine * const acm, char *key);
 static void failureFunction    (struct ac_machine * const acm);
@@ -19,10 +21,14 @@ static void createState        (struct ac_machine * const acm);
 
 static struct ac_machine * initMachine(const struct key_words * const keys);
 
+#if !defined(SALMELA_COMPARISON)
 static void initAuxiliaryFunctions(struct ac_machine * const acm, const struct key_words * const keys);
 
-static size_t estimateStates(long double m, long double l, long double s);
 static void estimateLeaves(size_t sigma, size_t m, size_t len);
+#endif
+
+static size_t estimateStates(long double m, long double l, long double s);
+
 
 
 // number of states estimated for random input
@@ -113,7 +119,7 @@ static void failureFunction(struct ac_machine * const acm){
     }
     freeQueue(queue);
 }
-
+#if !defined(SALMELA_COMPARISON)
 /* Preprocessing algorithm that calculates the auxiliary data as described in Ukkonen 1990: Algorithm 1 */
 static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_words * const keys){
     STATE s;
@@ -271,7 +277,7 @@ struct edge * createPath(struct ac_machine * acm, const struct key_words * const
     free(acm->last);
     return list;
 }
-
+#endif // SALMELA_COMPARISON
 /* Interface function. Creates the AC machine and all auxiliary data */
 const struct ac_machine * const createMachine(const struct key_words * const keys){
 
@@ -297,19 +303,23 @@ const struct ac_machine * const createMachine(const struct key_words * const key
 
 #ifdef INFO
     endTimer("    Failure function calculation");
+#if !defined(SALMELA_COMPARISON)
     startTimer("    Calculation of auxiliary functions");
 #endif
+#endif
 
+#if !defined(SALMELA_COMPARISON)
     initAuxiliaryFunctions(acm, keys);
     auxiliaryFunctions(acm, keys);
 
 #ifdef INFO    
     endTimer("    Calculation of auxiliary functions");
 #endif
-    
+#endif // SALMELA_COMPARISON    
     return acm;
 }
 
+#if !defined(SALMELA_COMPARISON)
 /* Prints the common superstring to stdout. */
 void printCommonSuperstring(const struct ac_machine * const acm, const struct key_words * const keys, struct edge *paths){
 
@@ -347,6 +357,7 @@ static void printPath(const struct ac_machine * const acm, const struct key_word
         d = paths[k].d;
     }
 }
+#endif // SALMELA_COMPARISON
 
 /* Creates and initializes a new state to the AC machine acm */
 static void createState(struct ac_machine * const acm){
@@ -372,6 +383,7 @@ static void createState(struct ac_machine * const acm){
         memset(acm->X, 0, sizeof(*acm->X) * (LEN));     \
     } while (0);
 
+#if !defined(SALMELA_COMPARISON)
 void initAdditionalfunctions(struct ac_machine * const acm, size_t k){
     ALLOCATE(first, k);
     ALLOCATE(last, k);
@@ -397,6 +409,8 @@ static void initAuxiliaryFunctions(struct ac_machine * const acm, const struct k
     estimateLeaves(real_alphabet_size, keys->len -1, strlen(keys->R[1]));
 
 }
+#endif // SALMELA_COMPARISON
+
 /* Initializes (allocates memory) and sets the default values  of the ac machine */
 /* Estimate the number of states and initialize memory for that estimate number. */
 static struct ac_machine * initMachine(const struct key_words * const keys){

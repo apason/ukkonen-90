@@ -19,8 +19,11 @@ extern size_t estimated_states;
  */
 struct ac_machine {
     goto_function g;
-    STATE *F;
-    STATE B;
+    linksQ **links;
+    uint8_t *leaf;
+    STATE *f;    
+#if !defined(SALMELA_COMPARISON)
+    STATE B;    
     STATE *E;
 #ifdef LONG_KEYS
     uint16_t *d;
@@ -28,14 +31,13 @@ struct ac_machine {
     uint8_t  *d;
 #endif
     STATE *b;
-    STATE *f;
+    STATE *F;
     STATE *first;
     STATE *last;
     uint8_t *forbidden;
     struct data_set **supporters_set;
     struct queue **P;
-    linksQ **links;
-    uint8_t *leaf;
+#endif //salmela_comparison    
     size_t len;
 };
 

@@ -90,6 +90,8 @@ int main (int argc, char *argv[]){
     endTimer("  AC-machine construction");
 #endif
 
+#ifndef SALMELA_COMPARISON
+    
     /* Calculates the common superstring of the keywords using the greedy
      * heuristic as described in the publication by Esko Ukkonen 1990 */
 #ifdef INFO    
@@ -101,7 +103,11 @@ int main (int argc, char *argv[]){
     endTimer("  Path calculation");
 #endif
 
+#endif // SALMELA_COMPARISON
+    
     unmap(keys);
+
+#ifndef SALMELA_COMPARISON    
     
 #ifdef INFO
     startTimer("  Overlap graph calculation");
@@ -111,20 +117,21 @@ int main (int argc, char *argv[]){
 #ifndef TEST2
     printCommonSuperstring(acm, keys, paths);
 #endif
-
+#endif // SALMELA_COMPARISON
 #endif /* SCS */    
     
 #ifdef INFO
 
-#ifdef SCS    
+#if defined(SCS) && !defined(SALMELA_COMPARISON)
     endTimer("  Overlap graph calculation");
 #endif    
 
+    
     endTimer("Total runtime");
     printUsageMessages();
 #endif    
 
-#ifdef INFO
+#if defined(INFO) && !defined(SALMELA_COMPARISON)
     printf("\nEstimated number of states:\t%ld\n", estimated_states);
     printf("Real number of states:\t%ld\n", acm->len);
     printf("Number of excess states:\t%ld  (%.2f%%)\n", estimated_states - acm->len, (double)((double)estimated_states - acm->len)*100 / (double)acm->len);
@@ -134,10 +141,10 @@ int main (int argc, char *argv[]){
     printf("Length of the superstring compression:\t");
 #endif
     
-#if defined(TEST2) || defined(INFO)
+#if !defined(SALMELA_COMPARISON) && ( defined(TEST2) || defined(INFO) )
     printf("%ld", cs_compression);
 #endif
-#ifdef INFO
+#if defined(INFO) && !defined(SALMELA_COMPARISON)
     printf("\nCompression ratio for reduced input:\t%.3lf\n",((double)reduced_input_length - cs_compression)/reduced_input_length);
     printf("Compression ratio for original input:\t%.3lf\n", ((double)reduced_input_length - cs_compression)/original_input_length);
 

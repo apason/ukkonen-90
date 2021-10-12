@@ -5,7 +5,7 @@
 # Run this file in scripts/ folder
 
 # This data set is not in the repo. Make sure it is already uniqued dataset. 
-datadir="../data/dna/"
+datadir="../data/real_15_128/"
 
 echo "Measuring runtime for the program"
 

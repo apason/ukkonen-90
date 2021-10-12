@@ -9,26 +9,16 @@
 
 STATE gotoGet(goto_function g, STATE state, ALPHABET key){
 
-    if(key == 0){
-        printf("get request for key 0\n");
-        fflush(NULL);
-    }
-
     return (*g[state])[key -1];
 }
 
 void gotoSet(goto_function g, STATE state, ALPHABET key, STATE value){
 
-    if(key == 0){
-        printf("set request for key 0\n");
-        fflush(NULL);
-    }
-
     (*g[state])[key -1] = value;
 }
 
 void gotoInit(goto_function g, size_t len){
-    g[len] = malloc(sizeof(STATE) * real_alphabet_size);
+    g[len] = malloc(sizeof(STATE) * real_alphabet_size); /* Can this be allocated at once? (still iteratively?) */
 
     if(g[len] == NULL){
         perror("malloc");

@@ -122,8 +122,10 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
     qPut(q, 1);
     acm->d[1] = 0;
     acm->B = 1;
-    
+
+#ifdef INFO
     startTimer("      Calculating depth and rBFS");
+#endif
 
     STATE r;
     while(!qEmpty(q)){
@@ -145,8 +147,10 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
         // free(acm->links[r]); // takes a very long time. Why it takes longer time here (individually) ?
     }
 
+#ifdef INFO
     endTimer("      Calculating depth and rBFS");
     startTimer("      Calculating L, F and E");
+#endif
     
     for(STATE s = 1; s <= acm->len; s++)
         acm->supporters_set[s] = newDataSet(estimated_leaves[acm->d[s]]);
@@ -176,8 +180,10 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
         }
     }
     
+#ifdef INFO
     endTimer("      Calculating L, F and E");    
     startTimer("      Freeing memory");
+#endif
 
     // g still leaks memory if the whole tree is not deallocated (when rb alternative is used)
     for(int i = 0; i < estimated_states; i++){
@@ -189,7 +195,11 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
     free(acm->g); // leaks memory if every individually allocated alphabet table is not freed.
     free(acm->E);
     free(acm->leaf);
+
+#ifdef INFO
     endTimer("      Freeing memory");
+#endif
+
 }
 
 /* Path calculation algorithm as described in Ukkonen 1990: Algorithm 2 */

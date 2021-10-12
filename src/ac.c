@@ -276,6 +276,11 @@ struct edge * createPath(struct ac_machine * acm, const struct key_words * const
         }
         s = acm->b[s];
     }
+
+#ifdef INFO
+    startTimer("      Freeing last memory");
+#endif
+    
     free(acm->d);
     free(acm->b);
     free(acm->f);
@@ -286,6 +291,11 @@ struct edge * createPath(struct ac_machine * acm, const struct key_words * const
     free(acm->supporters_set); // leaks memory
     free(acm->first);
     free(acm->last);
+
+#ifdef INFO
+    endTimer("      Freeing last memory");
+#endif
+    
     return list;
 }
 

@@ -94,7 +94,7 @@ static void failureFunction(struct ac_machine * const acm){
 
     while(!qEmpty(queue)){
         r = qGet(queue);
-
+        /* This is not O(n) !? Do we have links to use here? */
         for(c = 1; c <= real_alphabet_size; c++){
 
             if(gotoGet(acm->g, r, c) == 0)
@@ -171,7 +171,7 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
         }
     }
     
-
+    startTimer("      Freeing memory");
 
     // g still leaks memory if the whole tree is not deallocated (when rb alternative is used)
     for(int i = 0; i < estimated_states; i++){
@@ -183,6 +183,7 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
     free(acm->g); // leaks memory if every individually allocated alphabet table is not freed.
     free(acm->E);
     free(acm->leaf);
+    endTimer("      Freeing memory");
 }
 
 /* Path calculation algorithm as described in Ukkonen 1990: Algorithm 2 */

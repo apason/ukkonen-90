@@ -19,7 +19,6 @@
  *   gotoSet(struct ac_machine *, STATE, ALPHABET, STATE)
  *   gotoGet(struct ac_machine *, STATE, ALPHABET)
  *   void gotoInit(goto_function g, size_t len)
- *   void printGotoFunction(goto_function g, size_t len)
  */
 
 /*

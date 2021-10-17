@@ -1,6 +1,6 @@
 #include <stdio.h>  // [f]printf(), NULL
 #include <stdlib.h> // [m,re]alloc()
-#include <string.h> // memset(), strlen()
+#include <string.h> // strlen()
 #include <tgmath.h>
 
 #include "init.h"   // STATE, ALPHABET, ALPHABET_MAX
@@ -188,6 +188,8 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
 #endif
 
     // g still leaks memory if the whole tree is not deallocated (when rb alternative is used)
+    // If links and g are initialized to 0, we can loop through estimated_states instead of real len.
+    // This may be faster somehow.. ? 
     for(int i = 0; i < estimated_states; i++){
         free(acm->links[i]);
         free(acm->g[i]);
@@ -207,11 +209,9 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
 /* Path calculation algorithm as described in Ukkonen 1990: Algorithm 2 */
 struct edge * createPath(struct ac_machine * acm, const struct key_words * const keys){
 
-    struct edge * list = malloc(sizeof(struct edge) * keys->len);
+    struct edge * list = calloc(keys->len, sizeof(struct edge));
 
-    checkNULL(list, "malloc - createPath, list:");
-
-    memset(list, 0, sizeof(struct edge) * keys->len);
+    checkNULL(list, "calloc - createPath, list:");
 
     for(int j = 1; j < keys->len; j++){
 
@@ -243,6 +243,7 @@ struct edge * createPath(struct ac_machine * acm, const struct key_words * const
                     continue;
 
                 if(qEmpty(acm->P[s])){
+                    // should break instead!!!
                     continue;
                 }
 
@@ -273,6 +274,7 @@ struct edge * createPath(struct ac_machine * acm, const struct key_words * const
                 acm->last[acm->first[i]] = acm->last[j];
             }
 
+            /* Linked list. why not just copy one link? Do we still neet P[s] ? */
             for(struct queue_node *n = acm->P[s]->first; n != NULL; n = n->next)
                 qPut(acm->P[acm->f[s]], n->state, 0);
         }
@@ -393,19 +395,24 @@ static void createState(struct ac_machine * const acm){
 
 #define xstr(x) str(x)
 #define str(x) #x
-/* Allocates sizeof(TYPE) * LEN memory and stores the pointer to acm->X    */
-/* The allocated memory region is filled with zeros.                       */
-/* Note that this macro assumes that variable acm is available when called */
-#define ALLOCATE(X, LEN) do{                      \
-        acm->X = malloc(sizeof(*acm->X) * (LEN)); \
-        checkNULL(acm->X, "malloc - ALLOCATE");   \
-        memset(acm->X, 0, sizeof(*acm->X) * (LEN));     \
+
+/* Allocates sizeof(TYPE) * LEN memory and stores the pointer to acm->X     */
+/* The allocated memory region is filled with zeros with CALLOCATE.         */
+/* Note that these macros assume that variable acm is available when called */
+#define ALLOCATE(X, LEN) do{                        \
+        acm->X = malloc(sizeof(*acm->X) * (LEN));   \
+        checkNULL(acm->X, "malloc - ALLOCATE");     \
     } while (0);
+#define CALLOCATE(X, LEN) do{                       \
+        acm->X = calloc((LEN), sizeof(*acm->X));    \
+        checkNULL(acm->X, "calloc - CALLOCATE");    \
+    } while (0);
+
 
 void initAdditionalfunctions(struct ac_machine * const acm, size_t k){
     ALLOCATE(first, k);
     ALLOCATE(last, k);
-    ALLOCATE(forbidden, k);
+    CALLOCATE(forbidden, k);
     ALLOCATE(P, acm->len +1);    
     
     /* Many calls to malloc due to queue initializations */
@@ -419,7 +426,7 @@ static void initAuxiliaryFunctions(struct ac_machine * const acm, const struct k
 
     acm->B = 0;
 
-    ALLOCATE(E, acm->len +1);
+    CALLOCATE(E, acm->len +1);
     ALLOCATE(d, acm->len +1);
     ALLOCATE(b, acm->len +1);
     ALLOCATE(supporters_set, acm->len +1);
@@ -436,10 +443,12 @@ static struct ac_machine * initMachine(const struct key_words * const keys){
 
     estimated_states = estimateStates(keys->len -1, strlen(keys->R[1]), real_alphabet_size);
 
-    ALLOCATE(g, estimated_states);
-    ALLOCATE(f, estimated_states);
-    ALLOCATE(links, estimated_states);
-    ALLOCATE(leaf, estimated_states);
+    CALLOCATE(g, estimated_states);
+    // Why is f allocated for estimated_states. We already know the actual number of states when
+    // f is first used. Links, leaf and g are however used in the goto calculation.
+    CALLOCATE(f, estimated_states);
+    CALLOCATE(links, estimated_states);
+    CALLOCATE(leaf, estimated_states);
 
     acm->len = 0;
 

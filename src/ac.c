@@ -67,7 +67,7 @@ static void handleKey(struct ac_machine * const acm, char *key){
         if(acm->links[state] == NULL)
             acm->links[state] = linksNewQueue();
 
-        linksQPut(acm->links[state], acm->len);
+        linksQPut(acm->links[state], acm->len, key[p]);
 
         state = acm->len;
     }
@@ -77,7 +77,7 @@ static void handleKey(struct ac_machine * const acm, char *key){
 /* Failure function construction as described in Aho & Corasick 1975: algorithm 3 */
 static void failureFunction(struct ac_machine * const acm){
 
-    struct queue * const queue = newQueue();
+    struct fifo * const queue = newFifo();
     ALPHABET c;
     STATE r, s, t;
 
@@ -88,38 +88,38 @@ static void failureFunction(struct ac_machine * const acm){
 
         s = gotoGet(acm->g, 1, c);
 
-        qPut(queue, s);
+        fPut(queue, s);
         acm->f[s] = 1;
     }
 
-    while(!qEmpty(queue)){
-        r = qGet(queue);
-        /* This is not O(n) !? Do we have links to use here? */
-        for(c = 1; c <= real_alphabet_size; c++){
+    while(!fEmpty(queue)){
+        r = fGet(queue);
 
-            if(gotoGet(acm->g, r, c) == 0)
-                continue;
+        /* Leaves does not have links array */
+        if(acm->leaf[r])
+            continue;
+        
+        for(struct s_a_pair sa = linksQRead(acm->links[r]); sa.s != 0; sa = linksQRead(acm->links[r])){
 
-            s = gotoGet(acm->g, r, c);
-
-            qPut(queue, s);
+            fPut(queue, sa.s);
             t = acm->f[r];
 
-            while(gotoGet(acm->g, t, c) == 0)
+            while(gotoGet(acm->g, t, sa.c) == 0)
                 t = acm->f[t];
             
-            acm->f[s] = gotoGet(acm->g, t, c);
+            acm->f[sa.s] = gotoGet(acm->g, t, sa.c);
         }
     }
-    freeQueue(queue);
+
+    freeFifo(queue);
 }
 
 /* Preprocessing algorithm that calculates the auxiliary data as described in Ukkonen 1990: Algorithm 1 */
 static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_words * const keys){
     STATE s;
     
-    struct queue * q = newQueue();
-    qPut(q, 1);
+    struct fifo * q = newFifo();
+    fPut(q, 1);
     acm->d[1] = 0;
     acm->B = 1;
 
@@ -128,14 +128,14 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
 #endif
 
     STATE r;
-    while(!qEmpty(q)){
+    while(!fEmpty(q)){
 
-        r = qGet(q);
+        r = fGet(q);
 
         while(!linksQEmpty(acm->links[r])){
             STATE s = linksQGet(acm->links[r]);
 
-            qPut(q, s);
+            fPut(q, s);
             acm->d[s] = acm->d[r] +1;
             
             acm->b[s] = acm->B;
@@ -146,6 +146,8 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
         }
         // free(acm->links[r]); // takes a very long time. Why it takes longer time here (individually) ?
     }
+
+    freeFifo(q);
 
 #ifdef INFO
     endTimer("      Calculating depth and rBFS");
@@ -214,7 +216,7 @@ struct edge * createPath(struct ac_machine * acm, const struct key_words * const
     for(int j = 1; j < keys->len; j++){
 
         if(acm->F[j] != 1){
-            qPut(acm->P[acm->f[acm->F[j]]], j);
+            qPut(acm->P[acm->f[acm->F[j]]], j, 0);
             acm->first[j] = j;
             acm->last[j] = j;
         }
@@ -272,7 +274,7 @@ struct edge * createPath(struct ac_machine * acm, const struct key_words * const
             }
 
             for(struct queue_node *n = acm->P[s]->first; n != NULL; n = n->next)
-                qPut(acm->P[acm->f[s]], n->state);
+                qPut(acm->P[acm->f[s]], n->state, 0);
         }
         s = acm->b[s];
     }
@@ -348,9 +350,10 @@ void printCommonSuperstring(const struct ac_machine * const acm, const struct ke
 
     for(int i = 1; i < keys->len; i++){
         if(acm->forbidden[i] == 0)
-            qPut(q, i);
+            qPut(q, i, 0);
     }
 
+    /* How long is this queue? Should we use another fifo? */
     while(!qEmpty(q)){
         int i = qGet(q);
         printPath(acm, keys, i, paths, 1);
@@ -446,9 +449,7 @@ static struct ac_machine * initMachine(const struct key_words * const keys){
 /* Calculates the estimated number of leaves for subtrees of each depth */
 void estimateLeaves(size_t sigma, size_t m, size_t len){
 
-    //printf("sigma:%ld, m:%ld, len:%ld\n", sigma, m, len);
-
-    estimated_leaves = malloc(sizeof(*estimated_leaves) * (len +1));
+    estimated_leaves = malloc(sizeof(*estimated_leaves) * (len +2));
     checkNULL(estimated_leaves, "malloc - estimateLeaves");
 
     long double result;
@@ -457,8 +458,8 @@ void estimateLeaves(size_t sigma, size_t m, size_t len){
         result = (long double)m/powl(sigma, i);
         result++;
         estimated_leaves[i] = result;
-        //printf("for depth: %d\tnumber of nodes: %LF (%d)\n", i, result, estimated_leaves[i]);
     }
+    estimated_leaves[len+1] = 0;
 }
 
 size_t estimateStates(long double m, long double l, long double s){

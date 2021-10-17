@@ -5,7 +5,7 @@
 # Run this file in scripts/ folder
 
 # This data set is not in the repo. Make sure it is already uniqued dataset. 
-datadir="../data/real_15_128/"
+datadir="../data/real_15_254/"
 
 gcc -o memusage memusage.c
 echo "Measuring runtime and memory for the program"

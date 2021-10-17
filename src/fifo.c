@@ -18,16 +18,135 @@
  */
 
 #ifdef OPTIMIZE_LINKS
-int      (*linksQEmpty)(const linksQ * const)        = qAEmpty;
-STATE    (*linksQGet)        (linksQ * const)        = qAGet;
-int      (*linksQPut)        (linksQ * const, STATE) = qAPut;
-linksQ * (*linksNewQueue)    (void)                  = newAlphabetQueue;
+int      (*linksQEmpty)(const linksQ * const)                    = qAEmpty;
+STATE    (*linksQGet)        (linksQ * const)                    = qAGet;
+int      (*linksQPut)        (linksQ * const, STATE, ALPHABET c) = qAPut;
+linksQ * (*linksNewQueue)    (void)                              = newAlphabetQueue;
+struct s_a_pair(*linksQRead) (linksQ * const)                    = qARead;
+
 #else
-int      (*linksQEmpty)(const linksQ * const)        = qEmpty;
-STATE    (*linksQGet)        (linksQ * const)        = qGet;
-int      (*linksQPut)        (linksQ * const, STATE) = qPut;
-linksQ * (*linksNewQueue)    (void)                  = newQueue;
+
+int      (*linksQEmpty)(const linksQ * const)                    = qEmpty;
+STATE    (*linksQGet)        (linksQ * const)                    = qGet;
+int      (*linksQPut)        (linksQ * const, STATE, ALPHABET c) = qPut;
+linksQ * (*linksNewQueue)    (void)                              = newQueue;
+struct s_a_pair(*linksQRead) (linksQ * const)                    = qRead;
+
 #endif
+
+int fEmpty(const struct fifo * const f){
+
+    if(f->size < 1)
+        return 1;
+
+    return 0;    
+}
+
+/* If the fifo is empty, the behaviour is undefined */
+STATE fGet(struct fifo * const f){
+
+    struct fifo_node * first = f->first;
+    STATE s = first->data[first->first++];
+
+    if(first->first == NODE_CAPACITY){
+        f->first = first->next;
+        free(first);
+    }
+
+    f->size--;
+
+    return s;
+}
+
+/* If the fifo does not have at least two values,
+ * the behaviour is undefined
+ */
+STATE fGet2(struct fifo * const f){
+
+    struct fifo_node * node;
+    int offset;
+    
+    /* The second value is in the next node */
+    if(f->first->first == NODE_CAPACITY -1){
+        node = f->first->next;
+        offset = 0;
+    }
+    else{
+        node = f->first;
+        offset = 1;
+    }
+
+    STATE s = node->data[node->first +offset];
+
+    node->data[node->first +offset] = node->data[node->first];
+
+    node->first++;
+
+    f->size--;
+
+    return s;
+}
+
+void fPut(struct fifo * const f, STATE s){
+
+    struct fifo_node * node;
+    
+    if(f->first == NULL){
+        f->first = newFifoNode();
+        f->last = f->first;
+    }
+
+    if(f->last->last == NODE_CAPACITY){
+        node = newFifoNode();
+        f->last->next = node;
+        f->last = node;
+    }
+
+    node = f->last;
+    
+    node->data[node->last++] = s;
+
+    f->size++;
+}
+
+void freeFifo(struct fifo * const f){
+
+    struct fifo_node * node;
+
+    while(f->first != NULL){
+        node = f->first->next;
+        free(f->first);
+        f->first = node;
+    }
+    
+    free(f);
+}
+
+struct fifo * newFifo(void){
+
+    struct fifo * f = malloc(sizeof(*f));
+
+    checkNULL(f, "malloc - newFifo()");
+
+    f->size = 0;
+    f->first = NULL;
+    f->last = NULL;
+
+    return f;
+}
+
+struct fifo_node * newFifoNode(void){
+
+    struct fifo_node * node = malloc(sizeof(*node));
+
+    checkNULL(node, "malloc - newFifoNode()");
+
+    node->first = 0;
+    node->last = 0;
+    node->next = NULL;
+
+    return node;
+}
 
 /* 
  * Returns a new empty fifo
@@ -40,7 +159,8 @@ struct queue * newQueue(void){
 
     q->size = 0;
     q->first = NULL;
-    q->last = NULL; 
+    q->iterator = NULL;
+    q->last = NULL;
 
     return q;
 }
@@ -65,6 +185,24 @@ STATE qGet(struct queue * const q){
 }
 
 /*
+ * Reads the next item and increases the iterator.
+ * Returns zero if the iterator is at the end.
+ */
+struct s_a_pair qRead(struct queue * const q){
+
+    struct queue_node *iterator = q->iterator;
+
+    if(iterator == NULL)
+        return (struct s_a_pair) {0,0};
+    
+    STATE s = iterator->state;
+    ALPHABET c = iterator->c;
+    q->iterator = iterator->next;
+
+    return (struct s_a_pair) {s, c};
+}
+
+/*
  * Removes and returns the second element of the fifo
  */
 STATE qGet2(struct queue * const q){
@@ -86,7 +224,7 @@ STATE qGet2(struct queue * const q){
 /*
  * Inserts an element to the end of the fifo
  */
-int qPut(struct queue * const q, STATE s){
+int qPut(struct queue * const q, STATE s, ALPHABET c){
 
     struct queue_node *n = malloc(sizeof(*n));
 
@@ -95,10 +233,14 @@ int qPut(struct queue * const q, STATE s){
     n->state = s;
     n->next = NULL;
 
-    if(q->size == 0)
+    if(q->size == 0){
         q->first = n;
+        q->iterator = n;
+    }
     else
         q->last->next = n;
+
+    n->c = c;
     
     q->last = n;
     q->size++;
@@ -144,7 +286,20 @@ STATE qAGet(struct alphabet_queue * const q){
     if(q->first == q->last)
         return 0;
 
-    return q->data[q->first++];
+    return q->data[q->first++].s;
+}
+
+/*
+ * Reads the next item and increases the iterator.
+ * Returns zero if the iterator is at the end.
+ */
+struct s_a_pair qARead(struct alphabet_queue * const q){
+    
+
+    if(q->iterator == q->last)
+        return (struct s_a_pair) {0, 0};
+
+    return q->data[q->iterator++];
 }
 
 /*
@@ -164,10 +319,10 @@ int qAEmpty(const struct alphabet_queue * const q){
 /*
  * Inserts an element to the end of the fifo.
  */
-int qAPut(struct alphabet_queue * const q, STATE s){
+int qAPut(struct alphabet_queue * const q, STATE s, ALPHABET c){
 
-    q->data[q->last++] = s;
-
+    q->data[q->last].s = s;
+    q->data[q->last++].c = c;
     return 0;
 }
 
@@ -181,6 +336,7 @@ struct alphabet_queue * newAlphabetQueue(void){
     checkNULL(q, "malloc");
 
     q->first = 0;
+    q->iterator = 0;
     q->last = 0;
     memset(q->data, 0, sizeof(*q->data) * real_alphabet_size);
 
@@ -225,8 +381,6 @@ struct data_set * newDataSet(size_t capacity){
     struct data_set * s = malloc(sizeof(*s) + sizeof(*s->data) * capacity);
     checkNULL(s, "malloc");
 
-    //printf("initialized capacity: %ld\n", capacity);
-    
     s->iterator_r = 0;
     s->iterator_w = 0;
     s->capacity = capacity;

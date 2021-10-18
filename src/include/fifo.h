@@ -66,7 +66,7 @@ extern struct queue * newQueue (void);
 struct alphabet_queue{
     STATE first;
     STATE iterator;
-    STATE last;
+    STATE size;
 
     struct s_a_pair data[];
 };

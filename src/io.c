@@ -9,8 +9,7 @@ static ALPHABET *map_b;
 
 size_t optimizeAlphabet(const struct key_words * keys){
 
-    ALPHABET * map_a = (ALPHABET*) malloc(sizeof(*map_a) * ALPHABET_MAX);
-    memset(map_a, 0, sizeof(*map_a) * ALPHABET_MAX);
+    ALPHABET * map_a = (ALPHABET*) calloc(ALPHABET_MAX, sizeof(*map_a));
 
     map_b = (ALPHABET*) malloc(sizeof(*map_b) * ALPHABET_MAX);
 

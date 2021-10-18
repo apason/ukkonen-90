@@ -203,10 +203,8 @@ static struct key_words * removeDuplicates(struct key_words *keys){
 
     free(keys);
 
-    uniqued_keys->meta = malloc(sizeof(*uniqued_keys->meta) * uniqued_keys->len);
+    uniqued_keys->meta = calloc(uniqued_keys->len, sizeof(*uniqued_keys->meta));
     checkNULL(uniqued_keys->meta, "malloc");
-
-    memset(uniqued_keys->meta, 0, sizeof(*uniqued_keys->meta) * uniqued_keys->len);
 
 #ifdef INFO
     printf("Removed duplicates: %ld\n\n", duplicate_count);

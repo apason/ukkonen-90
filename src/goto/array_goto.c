@@ -1,7 +1,7 @@
 #ifdef ARRAY_GOTO
 
 #include <stdio.h>  // perror(), NULL 
-#include <stdlib.h> // malloc()
+#include <stdlib.h> // calloc()
 #include <string.h> // memset()
 
 #include "init.h"   // STATE, ALPHABET, ALPHABET_BYTES
@@ -18,14 +18,10 @@ void gotoSet(goto_function g, STATE state, ALPHABET key, STATE value){
 }
 
 void gotoInit(goto_function g, size_t len){
-    g[len] = malloc(sizeof(STATE) * real_alphabet_size); /* Can this be allocated at once? (still iteratively?) */
+    g[len] = calloc(real_alphabet_size, sizeof(STATE)); /* Can this be allocated at once? (still iteratively?) */
 
-    if(g[len] == NULL){
-        perror("malloc");
-        exit(EXIT_FAILURE);
-    }
-    
-    memset(g[len], 0, sizeof(STATE) * real_alphabet_size);
+    checkNULL(g[len], "calloc - gotoInit");
+
 }
 
 // not changed after alphabet_max

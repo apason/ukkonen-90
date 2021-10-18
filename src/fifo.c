@@ -1,6 +1,5 @@
 #include <stdio.h>  // NULL
 #include <stdlib.h> // malloc(), free()
-#include <string.h> // memset()
 
 #include "init.h"   // STATE ALPHABET_MAX
 #include "fifo.h"   // struct queue[_node]
@@ -124,13 +123,9 @@ void freeFifo(struct fifo * const f){
 
 struct fifo * newFifo(void){
 
-    struct fifo * f = malloc(sizeof(*f));
+    struct fifo * f = calloc(1, sizeof(*f));
 
-    checkNULL(f, "malloc - newFifo()");
-
-    f->size = 0;
-    f->first = NULL;
-    f->last = NULL;
+    checkNULL(f, "cmalloc - newFifo()");
 
     return f;
 }
@@ -153,14 +148,9 @@ struct fifo_node * newFifoNode(void){
  */
 struct queue * newQueue(void){
 
-    struct queue * q = malloc(sizeof(*q));
+    struct queue * q = calloc(1, sizeof(*q));
 
-    checkNULL(q, "malloc");
-
-    q->size = 0;
-    q->first = NULL;
-    q->iterator = NULL;
-    q->last = NULL;
+    checkNULL(q, "calloc - newQueue()");
 
     return q;
 }
@@ -283,7 +273,7 @@ void freeQueue(struct queue * const q){
  */
 STATE qAGet(struct alphabet_queue * const q){
 
-    if(q->first == q->last)
+    if(q->first == q->size)
         return 0;
 
     return q->data[q->first++].s;
@@ -296,7 +286,7 @@ STATE qAGet(struct alphabet_queue * const q){
 struct s_a_pair qARead(struct alphabet_queue * const q){
     
 
-    if(q->iterator == q->last)
+    if(q->iterator == q->size)
         return (struct s_a_pair) {0, 0};
 
     return q->data[q->iterator++];
@@ -310,7 +300,7 @@ int qAEmpty(const struct alphabet_queue * const q){
     if(q == NULL)
         return 1;
 
-    if(q->first == q->last)
+    if(q->first == q->size)
         return 1;
 
     return 0;
@@ -321,8 +311,8 @@ int qAEmpty(const struct alphabet_queue * const q){
  */
 int qAPut(struct alphabet_queue * const q, STATE s, ALPHABET c){
 
-    q->data[q->last].s = s;
-    q->data[q->last++].c = c;
+    q->data[q->size].s = s;
+    q->data[q->size++].c = c;
     return 0;
 }
 
@@ -331,14 +321,9 @@ int qAPut(struct alphabet_queue * const q, STATE s, ALPHABET c){
  */
 struct alphabet_queue * newAlphabetQueue(void){
 
-    struct alphabet_queue * q = malloc(sizeof(*q) + sizeof(*q->data) * real_alphabet_size);
+    struct alphabet_queue * q = calloc(1, (sizeof(*q) + sizeof(*q->data) * real_alphabet_size));
 
-    checkNULL(q, "malloc");
-
-    q->first = 0;
-    q->iterator = 0;
-    q->last = 0;
-    memset(q->data, 0, sizeof(*q->data) * real_alphabet_size);
+    checkNULL(q, "calloc - newAlphabetQueue");
 
     return q;
 }
@@ -378,13 +363,10 @@ int sPut(struct data_set ** s, STATE state){
 
 struct data_set * newDataSet(size_t capacity){
 
-    struct data_set * s = malloc(sizeof(*s) + sizeof(*s->data) * capacity);
-    checkNULL(s, "malloc");
+    struct data_set * s = calloc(1, (sizeof(*s) + sizeof(*s->data) * capacity));
+    checkNULL(s, "calloc - newDataSet");
 
-    s->iterator_r = 0;
-    s->iterator_w = 0;
     s->capacity = capacity;
-    memset(s->data, 0, sizeof(*s->data) * capacity);
 
     return s;
 }

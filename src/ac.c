@@ -74,10 +74,14 @@ static void handleKey(struct ac_machine * const acm, char *key){
     acm->leaf[state] = 1;
 }
 
+struct queue * bfs_q;
+
 /* Failure function construction as described in Aho & Corasick 1975: algorithm 3 */
 static void failureFunction(struct ac_machine * const acm){
 
-    struct fifo * const queue = newFifo();
+    bfs_q = newQueue();
+    qPut(bfs_q, 1, 0);
+    
     ALPHABET c;
     STATE r, s, t;
 
@@ -88,12 +92,13 @@ static void failureFunction(struct ac_machine * const acm){
 
         s = gotoGet(acm->g, 1, c);
 
-        fPut(queue, s);
+        qPut(bfs_q, s, 0);
         acm->f[s] = 1;
     }
 
-    while(!fEmpty(queue)){
-        r = fGet(queue);
+    (void) qRead(bfs_q);
+
+    while((r = qRead(bfs_q).s) != 0){
 
         /* Leaves does not have links array */
         if(acm->leaf[r])
@@ -101,7 +106,8 @@ static void failureFunction(struct ac_machine * const acm){
         
         for(struct s_a_pair sa = linksQRead(acm->links[r]); sa.s != 0; sa = linksQRead(acm->links[r])){
 
-            fPut(queue, sa.s);
+            qPut(bfs_q, sa.s, 0);
+
             t = acm->f[r];
 
             while(gotoGet(acm->g, t, sa.c) == 0)
@@ -111,15 +117,14 @@ static void failureFunction(struct ac_machine * const acm){
         }
     }
 
-    freeFifo(queue);
+    bfs_q->iterator = bfs_q->first;
+    (void)qRead(bfs_q);
 }
 
 /* Preprocessing algorithm that calculates the auxiliary data as described in Ukkonen 1990: Algorithm 1 */
 static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_words * const keys){
     STATE s;
     
-    struct fifo * q = newFifo();
-    fPut(q, 1);
     acm->d[1] = 0;
     acm->B = 1;
 
@@ -128,16 +133,13 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
 #endif
 
     STATE r;
-    while(!fEmpty(q)){
+    while(!qEmpty(bfs_q)){
 
-        r = fGet(q);
+        r = qGet(bfs_q);
 
-        while(!linksQEmpty(acm->links[r])){
-            STATE s = linksQGet(acm->links[r]);
-
-            fPut(q, s);
+        for(int x = acm->leaf[r] ? 0 : acm->links[r]->size; x > 0; x--){
+            STATE s = qRead(bfs_q).s;
             acm->d[s] = acm->d[r] +1;
-            
             acm->b[s] = acm->B;
             acm->B = s;
 
@@ -147,7 +149,7 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
         // free(acm->links[r]); // takes a very long time. Why it takes longer time here (individually) ?
     }
 
-    freeFifo(q);
+    freeQueue(bfs_q);
 
 #ifdef INFO
     endTimer("      Calculating depth and rBFS");

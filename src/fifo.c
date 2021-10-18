@@ -273,7 +273,7 @@ void freeQueue(struct queue * const q){
  */
 STATE qAGet(struct alphabet_queue * const q){
 
-    if(q->first == q->last)
+    if(q->first == q->size)
         return 0;
 
     return q->data[q->first++].s;
@@ -286,7 +286,7 @@ STATE qAGet(struct alphabet_queue * const q){
 struct s_a_pair qARead(struct alphabet_queue * const q){
     
 
-    if(q->iterator == q->last)
+    if(q->iterator == q->size)
         return (struct s_a_pair) {0, 0};
 
     return q->data[q->iterator++];
@@ -300,7 +300,7 @@ int qAEmpty(const struct alphabet_queue * const q){
     if(q == NULL)
         return 1;
 
-    if(q->first == q->last)
+    if(q->first == q->size)
         return 1;
 
     return 0;
@@ -311,8 +311,8 @@ int qAEmpty(const struct alphabet_queue * const q){
  */
 int qAPut(struct alphabet_queue * const q, STATE s, ALPHABET c){
 
-    q->data[q->last].s = s;
-    q->data[q->last++].c = c;
+    q->data[q->size].s = s;
+    q->data[q->size++].c = c;
     return 0;
 }
 

@@ -74,6 +74,8 @@ const struct key_words * const readInput(const char * const file_name){
 
     }
 
+    fclose(input);
+
 #ifdef INFO
     endTimer("  Reading of the input");
     startTimer("  Removal of the duplicates");
@@ -184,7 +186,7 @@ static struct key_words * removeDuplicates(struct key_words *keys){
             prev = keys->R[i];
             continue;
         }
-
+        free(keys->R[i]);
 #ifdef INFO
         duplicate_count++;
         reduced_input_length -= strlen(prev);
@@ -201,6 +203,8 @@ static struct key_words * removeDuplicates(struct key_words *keys){
         ;
     }
 
+    free(keys->R);
+    free(keys->meta);
     free(keys);
 
     uniqued_keys->meta = calloc(uniqued_keys->len, sizeof(*uniqued_keys->meta));

@@ -110,6 +110,7 @@ int main (int argc, char *argv[]){
     /* Common superstring is not printed if the program is run by test set 2 */
 #ifndef TEST2
     printCommonSuperstring(acm, keys, paths);
+    free(paths);
 #endif
 
 #endif /* SCS */    
@@ -144,6 +145,14 @@ int main (int argc, char *argv[]){
     printf("The constructed AC-machine has %ld states for which %ld are internal (when all keys are the same length) and %ld are leaf nodes\n", acm->len, acm->len - keys->len, keys->len);
 #endif
 
+    for(int i = 0; i < keys->len; i++)
+        free(keys->R[i]);
+    
+    free(keys->R);
+    free(keys->meta);
+    free((struct key_words *)keys);
+    free((struct ac_machine*)acm);
+    
     return EXIT_SUCCESS;
 }
 

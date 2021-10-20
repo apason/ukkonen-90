@@ -159,6 +159,8 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
     for(STATE s = 1; s <= acm->len; s++)
         acm->supporters_set[s] = newDataSet(estimated_leaves[acm->d[s]]);
 
+    free(estimated_leaves);
+
     for(int i = 1; i < keys->len; i++){
 
         int k = strlen(keys->R[i]);
@@ -194,14 +196,18 @@ static void auxiliaryFunctions(struct ac_machine * const acm, const struct key_w
     // This may be faster somehow.. ? 
     for(int i = 0; i < estimated_states; i++){
         free(acm->links[i]);
+#ifdef ARRAY_GOTO        
         free(acm->g[i]);
+#else
+        deleteTree(acm->g[i]);
+#endif        
     }
     
     free(acm->links); // leaks memory if every individually allocated linksQ object has not be freed
     free(acm->g); // leaks memory if every individually allocated alphabet table is not freed.
     free(acm->E);
     free(acm->leaf);
-
+    
 #ifdef INFO
     endTimer("      Freeing memory");
 #endif
@@ -291,8 +297,11 @@ struct edge * createPath(struct ac_machine * acm, const struct key_words * const
     free(acm->b);
     free(acm->f);
 
-    for(size_t ind = 1; ind <= acm->len; ind++)
+    for(size_t ind = 1; ind <= acm->len; ind++){
         free(acm->supporters_set[ind]);
+        freeQueue(acm->P[ind]);
+    }
+    free(acm->P);
     
     free(acm->supporters_set); // leaks memory
     free(acm->first);
@@ -364,6 +373,7 @@ void printCommonSuperstring(const struct ac_machine * const acm, const struct ke
     }
 
     free(acm->forbidden);
+    freeQueue(q);
     
 #ifdef INFO
     printf("\n");
@@ -418,7 +428,7 @@ void initAdditionalfunctions(struct ac_machine * const acm, size_t k){
     ALLOCATE(P, acm->len +1);    
     
     /* Many calls to malloc due to queue initializations */
-    for(int i = 0; i <= acm->len; i++)
+    for(int i = 1; i <= acm->len; i++)
         acm->P[i] = newQueue();
 }
 

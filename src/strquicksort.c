@@ -67,7 +67,6 @@ struct key_words * StringQuickSort(struct key_words *R, int l){
 	    add(R_null, S);
 	    continue;
 	}
-	
 
 	if(S[l] < pivot[l]){
 	    add(R_less, S);

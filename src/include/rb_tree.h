@@ -28,4 +28,6 @@ extern struct rb_node * rbSearch(struct rb_tree * tree, ALPHABET key);
 
 extern void printTree(struct rb_tree *tree);
 
+extern void deleteTree(struct rb_tree *tree);
+
 #endif /* RB_TREE_H */

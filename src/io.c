@@ -35,6 +35,7 @@ size_t optimizeAlphabet(const struct key_words * keys){
             keys->R[key_i][char_i] = map_a[keys->R[key_i][char_i]];
     }
 
+    free(map_a);
     return counter -1;
 }
 
@@ -46,4 +47,5 @@ void unmap(const struct key_words * keys){
             keys->R[key_i][char_i] = map_b[keys->R[key_i][char_i]];
     }
 
+    free(map_b);
 }

@@ -13,6 +13,7 @@ static void fixRBTree   (struct rb_tree * const tree, struct rb_node * current);
 static void rightRotate (struct rb_tree * const tree, struct rb_node * x);
 static void leftRotate  (struct rb_tree * const tree, struct rb_node * x);
 static void printSubTree(struct rb_node * node);
+static void deleteNode  (struct rb_node * node);
 
 static struct rb_node * newRBNode(ALPHABET key, STATE value);
 
@@ -59,6 +60,27 @@ struct rb_node * rbSearch(struct rb_tree * tree, ALPHABET key){
             node = node->right;
     }
     return node;
+}
+
+void deleteTree(struct rb_tree * tree){
+
+    if(tree == NULL)
+        return;
+
+    deleteNode(tree->root);
+
+    free(tree);
+}
+
+static void deleteNode(struct rb_node * node){
+
+    if(node == nil)
+        return;
+
+    deleteNode(node->left);
+    deleteNode(node->right);
+
+    free(node);
 }
 
 struct rb_tree * newTree(){

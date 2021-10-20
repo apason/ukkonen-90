@@ -257,11 +257,14 @@ int qEmpty(const struct queue * const q){
  */
 void freeQueue(struct queue * const q){
 
-    for(struct queue_node *n = q->first; n != NULL;){
+    if(q == NULL)
+        return;
+
+    struct queue_node * m;
+    for(struct queue_node *n = q->first; n != NULL; n = m){
         
-        struct queue_node *m = n->next;
+        m = n->next;
         free(n);
-        n = m;
     }
 
     free(q);
